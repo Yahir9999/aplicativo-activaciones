@@ -267,3 +267,36 @@ body {
         font-size: 10.5px;
     }
 }
+
+/* CORRECCIÓN FECHA EN IPHONE */
+#fecha {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+
+    padding: 0 14px !important;
+    font-size: 16px !important;
+    line-height: 48px !important;
+
+    border-radius: 10px !important;
+    background-color: #ffffff !important;
+    text-align: left !important;
+}
+
+/* Texto interno del date en Safari/iPhone */
+#fecha::-webkit-date-and-time-value {
+    text-align: left;
+    height: 48px;
+    line-height: 48px;
+    padding: 0;
+    margin: 0;
+}
+
+/* Quitar espacios extra internos */
+#fecha::-webkit-calendar-picker-indicator {
+    margin: 0;
+    padding: 0;
+}
