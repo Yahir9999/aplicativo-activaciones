@@ -300,3 +300,27 @@ body {
     margin: 0;
     padding: 0;
 }
+
+/* COLOR DEL TEXTO DE LA FECHA EN IOS */
+#fecha {
+    color: #000000 !important;
+}
+
+#fecha::-webkit-date-and-time-value {
+    color: #000000 !important;
+}
+
+#fecha::-webkit-datetime-edit {
+    color: #000000 !important;
+}
+
+#fecha::-webkit-datetime-edit-fields-wrapper {
+    color: #000000 !important;
+}
+
+#fecha::-webkit-datetime-edit-text,
+#fecha::-webkit-datetime-edit-month-field,
+#fecha::-webkit-datetime-edit-day-field,
+#fecha::-webkit-datetime-edit-year-field {
+    color: #000000 !important;
+}
