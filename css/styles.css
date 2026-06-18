@@ -20,19 +20,19 @@ body {
 /* HEADER */
 .app-header {
     text-align: center;
-    padding: 20px 0;
+    padding: 16px 0;
 }
 
 .app-header img {
-    max-width: 250px;
+    max-width: 220px;
     height: auto;
 }
 
 .app-header h1 {
     color: white;
     font-weight: 700;
-    margin-top: 10px;
-    font-size: 24px;
+    margin-top: 8px;
+    font-size: 22px;
 }
 
 /* CARDS */
@@ -40,8 +40,8 @@ body {
     background: transparent;
     border: none;
     border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 18px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
 }
 
 .card h2 {
@@ -60,7 +60,7 @@ body {
 .campo label {
     display: block;
     color: white;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 6px;
     text-transform: uppercase;
     font-size: 14px;
@@ -69,11 +69,13 @@ body {
 .campo input,
 .campo select {
     width: 100%;
-    border-radius: 10px;
+    height: 48px;
     min-height: 48px;
+    border-radius: 10px;
     border: none;
-    padding: 12px;
+    padding: 8px 14px;
     font-size: 16px;
+    background: white;
 }
 
 .campo input:focus,
@@ -81,49 +83,73 @@ body {
     outline: 2px solid #bfcee4;
 }
 
+#fecha {
+    height: 48px;
+    min-height: 48px;
+    padding: 8px 14px;
+    font-size: 16px;
+    text-align: left;
+}
+
 /* SCANNER */
 .scanner-box {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 #serie {
     width: 100%;
 }
 
-#btnScanner {
-    width: 60%;
-    margin: 0 auto;
+#btnScanner.btn-scan {
+    width: 58%;
+    max-width: 240px;
+    margin: 8px auto 0;
+
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 
     background: #ffffff;
     color: #002060;
-
     border: none;
-    border-radius: 20px;
+    border-radius: 18px;
 
-    padding: 12px 20px;
+    padding: 8px 12px;
 
     font-weight: 700;
     cursor: pointer;
-
-    box-shadow: 0 4px 10px rgba(0, 0, 0, .15);
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
     transition: all .2s ease;
 }
 
-#btnScanner:hover {
+#btnScanner.btn-scan:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, .2);
 }
 
-#btnScanner:active {
+#btnScanner.btn-scan:active {
     transform: scale(0.98);
 }
 
-/* CONTENEDOR DE CÁMARA */
+#btnScanner .barcode-icon {
+    font-size: 24px;
+    line-height: .85;
+    letter-spacing: -2px;
+    color: #000;
+    margin-bottom: 5px;
+}
+
+#btnScanner span {
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .3px;
+    color: #002060;
+}
+
+/* CÁMARA */
 .reader {
     width: 100%;
     display: none;
@@ -183,102 +209,61 @@ body {
     cursor: not-allowed;
 }
 
-
-
-
-
-/* FECHA */
-input[type="date"] {
-    height: 50px;
-    min-height: 50px;
-    padding: 8px 14px;
-    font-size: 16px;
-    text-align: left;
-}
-
-/* BOTÓN ESCANEAR */
-.btn-scan {
-    width: 70%;
-    max-width: 330px;
-    margin: 10px auto 0;
-
-    padding: 12px 18px;
-    border-radius: 22px;
-
-    background: #ffffff;
-    color: #002060;
-    border: none;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.barcode-icon {
-    font-size: 32px;
-    line-height: 1;
-    letter-spacing: -3px;
-    margin-bottom: 6px;
-    color: #000;
-}
-
-.btn-scan span {
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: .3px;
-    color: #002060;
-     display: block;
-    line-height: 1;
-}
-
-
-
-
 /* RESPONSIVO */
 @media (max-width: 480px) {
+    .container {
+        padding: 14px;
+    }
+
+    .app-header {
+        padding: 12px 0;
+    }
+
     .app-header img {
-        max-width: 210px;
+        max-width: 200px;
     }
 
     .app-header h1 {
-        font-size: 21px;
+        font-size: 20px;
     }
 
-    #btnScanner {
-        width: 80%;
+    .card {
+        padding: 14px 16px;
+        margin-bottom: 14px;
     }
-}
 
-@media (max-width: 480px) {
+    .card h2 {
+        font-size: 17px;
+        margin-bottom: 16px;
+    }
+
+    .campo {
+        margin-bottom: 14px;
+    }
 
     .campo input,
-    .campo select {
-        min-height: 48px;
-        height: 48px;
-        font-size: 16px;
-        padding: 8px 14px;
-    }
-
-    input[type="date"] {
-        height: 48px;
-        min-height: 48px;
+    .campo select,
+    #fecha {
+        height: 46px;
+        min-height: 46px;
         font-size: 15px;
+        padding: 8px 13px;
     }
 
-    .btn-scan {
-        width: 68%;
-        max-width: 280px;
-        padding: 10px 14px;
-        border-radius: 20px;
+    #btnScanner.btn-scan {
+        width: 56%;
+        max-width: 220px;
+        padding: 7px 10px;
+        border-radius: 17px;
+        margin-top: 7px;
     }
 
-    .barcode-icon {
-        font-size: 28px;
-        margin-bottom: 5px;
+    #btnScanner .barcode-icon {
+        font-size: 22px;
+        margin-bottom: 4px;
     }
 
-    .btn-scan span {
-        font-size: 12px;
+    #btnScanner span {
+        font-size: 10.5px;
     }
 }
