@@ -1,0 +1,237 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: #002060;
+    min-height: 100vh;
+    padding-bottom: 40px;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+/* HEADER */
+.app-header {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.app-header img {
+    max-width: 250px;
+    height: auto;
+}
+
+.app-header h1 {
+    color: white;
+    font-weight: 700;
+    margin-top: 10px;
+    font-size: 24px;
+}
+
+/* CARDS */
+.card {
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.card h2 {
+    color: white;
+    text-align: center;
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+/* CAMPOS */
+.campo {
+    margin-bottom: 16px;
+}
+
+.campo label {
+    display: block;
+    color: white;
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    border-radius: 10px;
+    min-height: 48px;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+}
+
+.campo input:focus,
+.campo select:focus {
+    outline: 2px solid #bfcee4;
+}
+
+/* SCANNER */
+.scanner-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#serie {
+    width: 100%;
+}
+
+#btnScanner {
+    width: 60%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+    color: #002060;
+
+    border: none;
+    border-radius: 20px;
+
+    padding: 12px 20px;
+
+    font-weight: 700;
+    cursor: pointer;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .15);
+    transition: all .2s ease;
+}
+
+#btnScanner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, .2);
+}
+
+#btnScanner:active {
+    transform: scale(0.98);
+}
+
+/* CONTENEDOR DE CÁMARA */
+.reader {
+    width: 100%;
+    display: none;
+    margin-top: 15px;
+    overflow: hidden;
+    border-radius: 15px;
+    background: white;
+}
+
+/* MENSAJES */
+.mensaje {
+    display: none;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.mensaje.exito {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mensaje.error {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* BOTÓN REGISTRAR */
+.acciones {
+    margin-top: 18px;
+}
+
+#btnRegistrar {
+    background-color: #bfcee4;
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+}
+
+#btnRegistrar:hover {
+    background-color: #f2f2f2;
+    color: #002060;
+}
+
+#btnRegistrar:disabled {
+    background-color: #9ca3af;
+    color: #333;
+    cursor: not-allowed;
+}
+
+.btn-scan {
+    width: 55%;
+    margin: 12px auto 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+    color: #002060;
+
+    border: none;
+    border-radius: 25px;
+
+    padding: 18px 20px;
+
+    cursor: pointer;
+}
+
+.barcode-icon {
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: -4px;
+    color: black;
+
+    margin-bottom: 12px; /* separación con el texto */
+}
+
+.btn-scan span {
+    font-size: 12px;
+    font-weight: 700;
+    color: #002060;
+
+    display: block;
+    line-height: 1;
+}
+
+/* RESPONSIVO */
+@media (max-width: 480px) {
+    .app-header img {
+        max-width: 210px;
+    }
+
+    .app-header h1 {
+        font-size: 21px;
+    }
+
+    #btnScanner {
+        width: 80%;
+    }
+}

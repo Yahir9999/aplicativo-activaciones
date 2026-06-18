@@ -1,0 +1,21 @@
+{
+  "name": "Activaciones",
+  "short_name": "Activaciones",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#002060",
+  "theme_color": "#002060",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/iconos/icono-activaciones.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/iconos/icono-activaciones.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
