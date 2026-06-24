@@ -16,7 +16,13 @@ async function iniciarScanner() {
     reader.style.display = "block";
 
     reader.innerHTML = `
-        <video id="videoScanner" style="width:100%; border-radius:12px;"></video>
+        <video 
+            id="videoScanner" 
+            autoplay 
+            muted 
+            playsinline
+            style="width:100%; border-radius:12px;">
+        </video>
     `;
 
     const video = document.getElementById("videoScanner");
@@ -33,10 +39,9 @@ async function iniciarScanner() {
         controls = await codeReader.decodeFromConstraints(
             {
                 video: {
-                    facingMode: { ideal: "environment" },
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
-                    focusMode: { ideal: "continuous" }
+                    facingMode: "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 }
             },
             video,
@@ -49,10 +54,9 @@ async function iniciarScanner() {
         );
 
     } catch (error) {
-        console.error(error);
+        console.error("Error al abrir cámara:", error);
 
-        scannerActivo = false;
-        reader.style.display = "none";
+        detenerScanner();
 
         mostrarMensaje("error", "No se pudo abrir la cámara.");
     }
@@ -84,7 +88,7 @@ async function codigoLeido(decodedText) {
         detenerScanner();
 
     } catch (error) {
-        console.error(error);
+        console.error("Error procesando lectura:", error);
         lecturaProcesada = false;
     }
 }
@@ -100,10 +104,11 @@ function detenerScanner() {
 
         reader.innerHTML = "";
         reader.style.display = "none";
+
         scannerActivo = false;
         lecturaProcesada = false;
 
     } catch (error) {
-        console.error(error);
+        console.error("Error al detener scanner:", error);
     }
 }
