@@ -52,7 +52,11 @@ async function codigoLeido(decodedText) {
 
         serie.value = decodedText.trim();
 
+        serie.readOnly = true;
+
         serieEscaneada = true;
+
+        confirmacionSerie.classList.remove("oculto");
 
         validarFormulario();
 

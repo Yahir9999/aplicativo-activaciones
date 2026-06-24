@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activaciones</title>
 
-    <link rel="stylesheet" href="css/styles.css?v=5">
+    <link rel="stylesheet" href="css/styles.css?v=6">
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -57,9 +57,14 @@
 
             <div class="campo">
                 <label for="modelo">Modelo</label>
-                <select id="modelo">
-                    <option value="">Seleccionar</option>
-                </select>
+                <input 
+                    type="text" 
+                    id="modelo" 
+                    list="listaModelos"
+                    placeholder="Escribe o selecciona modelo"
+                    autocomplete="off">
+
+                <datalist id="listaModelos"></datalist>
             </div>
 
             <div class="campo">
@@ -85,7 +90,20 @@
                     </span>
 
                 </button>
+
+                <div id="confirmacionSerie" class="confirmacion-serie oculto">
+
+                    <p>¿La serie fue registrada correctamente?</p>
+
+                    <div class="confirmacion-botones">
+                        <button type="button" id="btnSerieSi">Sí</button>
+                        <button type="button" id="btnSerieNo">No</button>
+                    </div>
+
+                </div>
             </div>
+
+
 
             <div id="reader" class="reader"></div>
 
@@ -143,8 +161,8 @@
 
     <script src="https://unpkg.com/html5-qrcode"></script>
 
-    <script src="js/scanner.js?v=5"></script>
-    <script src="js/app.js?v=5"></script>
+    <script src="js/scanner.js?v=6"></script>
+    <script src="js/app.js?v=6"></script>
 
     <script>
 if ("serviceWorker" in navigator) {

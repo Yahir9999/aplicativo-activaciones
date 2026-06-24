@@ -30,6 +30,11 @@ const tipoEstructura = document.getElementById("tipoEstructura");
 const btnRegistrar = document.getElementById("btnRegistrar");
 const mensaje = document.getElementById("mensaje");
 
+const confirmacionSerie = document.getElementById("confirmacionSerie");
+const btnSerieSi = document.getElementById("btnSerieSi");
+const btnSerieNo = document.getElementById("btnSerieNo");
+const listaModelos = document.getElementById("listaModelos");
+
 
 // ==============================
 // INICIO
@@ -91,7 +96,7 @@ async function cargarCatalogos() {
         catalogos = data;
 
         llenarSelect(cedi, data.cedis, "CEDI", "CEDI");
-        llenarSelect(modelo, data.modelos, "MODELO", "MODELO");
+        llenarDatalistModelos(data.modelos);
 
         cedi.addEventListener("change", () => {
             cargarActivadoresPorCedi();
@@ -136,6 +141,21 @@ function cargarAgenciasPorCedi() {
     llenarSelect(agencia, filtradas, "AGENCIA", "AGENCIA");
 }
 
+// funcion para que los  modelos se llenen solos
+function llenarDatalistModelos(datos) {
+    listaModelos.innerHTML = "";
+
+    const modelosOrdenados = datos
+        .map(item => item.MODELO)
+        .filter(modelo => modelo !== "" && modelo !== undefined && modelo !== null)
+        .sort((a, b) => String(a).localeCompare(String(b), "es"));
+
+    modelosOrdenados.forEach(modelo => {
+        const option = document.createElement("option");
+        option.value = modelo;
+        listaModelos.appendChild(option);
+    });
+}
 
 // ==============================
 // VALIDACIONES
@@ -184,6 +204,28 @@ function escucharCambios() {
         campo.addEventListener("change", validarFormulario);
     });
 }
+
+btnSerieSi.addEventListener("click", () => {
+    serie.readOnly = true;
+    serieEscaneada = true;
+    confirmacionSerie.classList.add("oculto");
+    validarFormulario();
+});
+
+btnSerieNo.addEventListener("click", () => {
+    serie.readOnly = false;
+    serie.select();
+    serie.focus();
+
+    confirmacionSerie.classList.add("oculto");
+
+    mostrarMensaje(
+        "error",
+        "Corrige la serie manualmente y continúa."
+    );
+
+    validarFormulario();
+});
 
 
 // ==============================
@@ -271,6 +313,9 @@ function limpiarFormulario() {
     tipoEstructura.value = "";
 
     serieEscaneada = false;
+
+    serie.readOnly = true;
+    confirmacionSerie.classList.add("oculto");
 
     validarFormulario();
 }
