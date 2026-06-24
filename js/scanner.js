@@ -1,6 +1,7 @@
 let codeReader = null;
 let controls = null;
 let scannerActivo = false;
+let lecturaProcesada = false;
 
 const btnScanner = document.getElementById("btnScanner");
 const reader = document.getElementById("reader");
@@ -11,6 +12,7 @@ async function iniciarScanner() {
     if (scannerActivo) return;
 
     scannerActivo = true;
+    lecturaProcesada = false;
     reader.style.display = "block";
 
     reader.innerHTML = `
@@ -20,13 +22,27 @@ async function iniciarScanner() {
     const video = document.getElementById("videoScanner");
 
     try {
-        codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+        const hints = new Map();
 
-        controls = await codeReader.decodeFromVideoDevice(
-            null,
+        hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXingBrowser.BarcodeFormat.CODE_128
+        ]);
+
+        codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+
+        controls = await codeReader.decodeFromConstraints(
+            {
+                video: {
+                    facingMode: { ideal: "environment" },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    focusMode: { ideal: "continuous" }
+                }
+            },
             video,
             (result, error) => {
-                if (result) {
+                if (result && !lecturaProcesada) {
+                    lecturaProcesada = true;
                     codigoLeido(result.getText());
                 }
             }
@@ -53,6 +69,7 @@ async function codigoLeido(decodedText) {
 
         if (!vinValido.test(serieLimpia)) {
             console.warn("Lectura rechazada:", serieLimpia);
+            lecturaProcesada = false;
             return;
         }
 
@@ -68,6 +85,7 @@ async function codigoLeido(decodedText) {
 
     } catch (error) {
         console.error(error);
+        lecturaProcesada = false;
     }
 }
 
@@ -78,13 +96,12 @@ function detenerScanner() {
             controls = null;
         }
 
-        if (codeReader) {
-            codeReader = null;
-        }
+        codeReader = null;
 
         reader.innerHTML = "";
         reader.style.display = "none";
         scannerActivo = false;
+        lecturaProcesada = false;
 
     } catch (error) {
         console.error(error);
