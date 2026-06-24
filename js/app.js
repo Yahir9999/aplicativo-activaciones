@@ -181,7 +181,7 @@ function validarFormulario() {
         litros.value.trim() !== "" &&
         !isNaN(litrosValor) &&
         litrosValor >= 0 &&
-        litrosValor <= 20;
+        litrosValor <= 9;
 
     btnRegistrar.disabled = !valido;
 }
@@ -239,8 +239,8 @@ async function registrarActivacion() {
 
     const litrosValor = Number(litros.value);
 
-    if (litrosValor > 20 || litrosValor < 0 || isNaN(litrosValor)) {
-        mostrarMensaje("error", "Los litros de gasolina deben ser de 0 a 20.");
+    if (litrosValor > 9 || litrosValor < 0 || isNaN(litrosValor)) {
+        mostrarMensaje("error", "Los litros de gasolina deben ser de 0 a 9.");
         validarFormulario();
         return;
     }
