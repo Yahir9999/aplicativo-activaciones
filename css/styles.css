@@ -367,3 +367,24 @@ body {
     background: #fee2e2;
     color: #991b1b;
 }
+
+#reader {
+    width: 100%;
+    max-width: 420px;
+    max-height: 280px;
+    margin: 20px auto;
+    overflow: hidden;
+    border-radius: 16px;
+}
+
+#reader video {
+    width: 100% !important;
+    height: 280px !important;
+    object-fit: cover !important;
+    border-radius: 16px;
+}
+
+#reader canvas {
+    width: 100% !important;
+    height: 280px !important;
+}
