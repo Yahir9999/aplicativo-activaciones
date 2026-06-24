@@ -1,4 +1,5 @@
-let html5QrCode = null;
+let codeReader = null;
+let controls = null;
 let scannerActivo = false;
 
 const btnScanner = document.getElementById("btnScanner");
@@ -12,52 +13,24 @@ async function iniciarScanner() {
     scannerActivo = true;
     reader.style.display = "block";
 
-    html5QrCode = new Html5Qrcode("reader");
+    reader.innerHTML = `
+        <video id="videoScanner" style="width:100%; border-radius:12px;"></video>
+    `;
+
+    const video = document.getElementById("videoScanner");
 
     try {
-        await html5QrCode.start(
-            {
-                facingMode: "environment"
-            },
-            {
-                fps: 20,
+        codeReader = new ZXingBrowser.BrowserMultiFormatReader();
 
-                qrbox: {
-                    width: 380,
-                    height: 220
-                },
-
-                aspectRatio: 1.777,
-
-                videoConstraints: {
-                    facingMode: "environment",
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                },
-
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_93
-                ]
-            },
-            codigoLeido
-        );
-
-        // Zoom automático si el celular lo permite
-        setTimeout(async () => {
-            try {
-                const capabilities = html5QrCode.getRunningTrackCapabilities();
-
-                if (capabilities && capabilities.zoom) {
-                    await html5QrCode.applyVideoConstraints({
-                        advanced: [{ zoom: 2 }]
-                    });
+        controls = await codeReader.decodeFromVideoDevice(
+            null,
+            video,
+            (result, error) => {
+                if (result) {
+                    codigoLeido(result.getText());
                 }
-            } catch (e) {
-                console.warn("Zoom no disponible en este dispositivo");
             }
-        }, 800);
+        );
 
     } catch (error) {
         console.error(error);
@@ -91,9 +64,25 @@ async function codigoLeido(decodedText) {
 
         validarFormulario();
 
-        await html5QrCode.stop();
-        await html5QrCode.clear();
+        detenerScanner();
 
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function detenerScanner() {
+    try {
+        if (controls) {
+            controls.stop();
+            controls = null;
+        }
+
+        if (codeReader) {
+            codeReader = null;
+        }
+
+        reader.innerHTML = "";
         reader.style.display = "none";
         scannerActivo = false;
 
