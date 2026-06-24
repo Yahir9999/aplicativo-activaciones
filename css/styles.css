@@ -388,3 +388,10 @@ body {
     width: 100% !important;
     height: 280px !important;
 }
+
+.ayuda-scanner {
+    font-size: 13px;
+    text-align: center;
+    color: #555;
+    margin-bottom: 8px;
+}

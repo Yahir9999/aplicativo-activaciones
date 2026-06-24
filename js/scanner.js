@@ -16,20 +16,48 @@ async function iniciarScanner() {
 
     try {
         await html5QrCode.start(
-            { facingMode: "environment" },
             {
-                fps: 15,
+                facingMode: "environment"
+            },
+            {
+                fps: 20,
+
                 qrbox: {
-                    width: 340,
-                    height: 140
+                    width: 380,
+                    height: 220
                 },
+
                 aspectRatio: 1.777,
+
+                videoConstraints: {
+                    facingMode: "environment",
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+
                 formatsToSupport: [
-                    Html5QrcodeSupportedFormats.CODE_128
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93
                 ]
             },
             codigoLeido
         );
+
+        // Zoom automático si el celular lo permite
+        setTimeout(async () => {
+            try {
+                const capabilities = html5QrCode.getRunningTrackCapabilities();
+
+                if (capabilities && capabilities.zoom) {
+                    await html5QrCode.applyVideoConstraints({
+                        advanced: [{ zoom: 2 }]
+                    });
+                }
+            } catch (e) {
+                console.warn("Zoom no disponible en este dispositivo");
+            }
+        }, 800);
 
     } catch (error) {
         console.error(error);
