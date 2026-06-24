@@ -159,15 +159,15 @@
 
     </main>
 
-    <script src="https://unpkg.com/@zxing/browser@latest"></script>
+    <<script src="https://unpkg.com/@zxing/browser@latest"></script>
 
-    <script src="js/scanner.js?v=9"></script>
     <script src="js/app.js?v=9"></script>
+    <script src="js/scanner.js?v=9"></script>
 
     <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service_worker.js");
+        navigator.serviceWorker.register("service-worker.js");
     });
 }
 </script>
