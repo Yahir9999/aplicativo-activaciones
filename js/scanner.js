@@ -17,9 +17,9 @@ async function iniciarScanner() {
 
     reader.innerHTML = `
         <video 
-            id="videoScanner" 
-            autoplay 
-            muted 
+            id="videoScanner"
+            autoplay
+            muted
             playsinline
             style="width:100%; border-radius:12px;">
         </video>
@@ -28,13 +28,7 @@ async function iniciarScanner() {
     const video = document.getElementById("videoScanner");
 
     try {
-        const hints = new Map();
-
-        hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, [
-            ZXingBrowser.BarcodeFormat.CODE_128
-        ]);
-
-        codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+        codeReader = new ZXingBrowser.BrowserMultiFormatReader();
 
         controls = await codeReader.decodeFromConstraints(
             {
@@ -55,9 +49,7 @@ async function iniciarScanner() {
 
     } catch (error) {
         console.error("Error al abrir cámara:", error);
-
         detenerScanner();
-
         mostrarMensaje("error", "No se pudo abrir la cámara.");
     }
 }
@@ -101,7 +93,6 @@ function detenerScanner() {
         }
 
         codeReader = null;
-
         reader.innerHTML = "";
         reader.style.display = "none";
 

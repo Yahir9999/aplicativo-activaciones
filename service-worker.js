@@ -1,4 +1,4 @@
-const CACHE_NAME = "activaciones-v11";
+const CACHE_NAME = "activaciones-v13";
 
 const FILES_TO_CACHE = [
   "./",
@@ -7,7 +7,7 @@ const FILES_TO_CACHE = [
   "./css/styles.css",
   "./js/app.js",
   "./js/scanner.js",
-  "./iconos/logo.png"
+  "./assets/logo.png"
 ];
 
 self.addEventListener("install", event => {
@@ -34,9 +34,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request)
-      .then(response => {
-        return response;
-      })
+      .then(response => response)
       .catch(() => caches.match(event.request))
   );
 });
