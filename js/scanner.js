@@ -7,53 +7,56 @@ const reader = document.getElementById("reader");
 btnScanner.addEventListener("click", iniciarScanner);
 
 async function iniciarScanner() {
-
     if (scannerActivo) return;
 
     scannerActivo = true;
-
     reader.style.display = "block";
 
     html5QrCode = new Html5Qrcode("reader");
 
     try {
-
         await html5QrCode.start(
             { facingMode: "environment" },
             {
-                fps: 10,
+                fps: 15,
                 qrbox: {
-                    width: 250,
-                    height: 100
-                }
+                    width: 340,
+                    height: 140
+                },
+                aspectRatio: 1.777,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.CODE_128
+                ]
             },
             codigoLeido
         );
 
     } catch (error) {
-
         console.error(error);
 
         scannerActivo = false;
         reader.style.display = "none";
 
-        mostrarMensaje(
-            "error",
-            "No se pudo abrir la cámara."
-        );
-
+        mostrarMensaje("error", "No se pudo abrir la cámara.");
     }
-
 }
 
 async function codigoLeido(decodedText) {
-
     try {
+        const serieLimpia = decodedText
+            .trim()
+            .replace(/\s+/g, "")
+            .toUpperCase();
 
-        serie.value = decodedText.trim();
+        const vinValido = /^[A-HJ-NPR-Z0-9]{17}$/;
 
+        if (!vinValido.test(serieLimpia)) {
+            console.warn("Lectura rechazada:", serieLimpia);
+            return;
+        }
+
+        serie.value = serieLimpia;
         serie.readOnly = true;
-
         serieEscaneada = true;
 
         confirmacionSerie.classList.remove("oculto");
@@ -61,19 +64,12 @@ async function codigoLeido(decodedText) {
         validarFormulario();
 
         await html5QrCode.stop();
-
         await html5QrCode.clear();
 
         reader.style.display = "none";
-
         scannerActivo = false;
 
-    }
-
-    catch (error) {
-
+    } catch (error) {
         console.error(error);
-
     }
-
 }
