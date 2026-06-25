@@ -516,14 +516,3 @@ body {
     }
 }
 
-.vin-estado {
-    width: 88%;
-    margin: 10px 6% 12px;
-    background: #bfcee4;
-    color: #002060;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: 800;
-    text-align: center;
-}

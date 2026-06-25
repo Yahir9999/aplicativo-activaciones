@@ -1,18 +1,12 @@
 const btnVinOCR = document.getElementById("btnVinOCR");
 
-let vinOCRActivo = false;
-let vinOCRProcesando = false;
-let intervaloVIN = null;
-
 btnVinOCR.addEventListener("click", leerVINConOCR);
 
 async function leerVINConOCR() {
     if (scannerActivo) detenerScanner();
 
     scannerActivo = true;
-    vinOCRActivo = true;
-    vinOCRProcesando = false;
-
+    lecturaProcesada = false;
     reader.style.display = "block";
 
     reader.innerHTML = `
@@ -20,16 +14,17 @@ async function leerVINConOCR() {
             <video id="videoVinOCR" autoplay muted playsinline></video>
 
             <div class="vin-guia">
-                Coloca el VIN dentro del recuadro
+                Coloca solo el VIN dentro del recuadro
             </div>
 
-            <div class="vin-estado" id="vinEstado">
-                Buscando VIN...
-            </div>
+            <button type="button" id="btnCapturarVIN" class="btn-capturar-vin">
+                Capturar VIN
+            </button>
         </div>
     `;
 
     const video = document.getElementById("videoVinOCR");
+    const btnCapturarVIN = document.getElementById("btnCapturarVIN");
 
     try {
         streamActivo = await navigator.mediaDevices.getUserMedia({
@@ -43,27 +38,12 @@ async function leerVINConOCR() {
         video.srcObject = streamActivo;
         await video.play();
 
-        mostrarMensaje("exito", "Apunta al VIN y mantén la cámara fija...");
+        btnCapturarVIN.addEventListener("click", async () => {
+            btnCapturarVIN.disabled = true;
+            btnCapturarVIN.textContent = "Leyendo VIN, no muevas la cámara...";
 
-        iniciarLecturaAutomaticaVIN(video);
+            mostrarMensaje("exito", "Leyendo VIN, mantén la cámara fija...");
 
-    } catch (error) {
-        console.error("Error al abrir cámara VIN:", error);
-        detenerVINScanner();
-        mostrarMensaje("error", "No se pudo abrir la cámara para leer el VIN.");
-    }
-}
-
-function iniciarLecturaAutomaticaVIN(video) {
-    intervaloVIN = setInterval(async () => {
-        if (!vinOCRActivo || vinOCRProcesando) return;
-
-        vinOCRProcesando = true;
-
-        const vinEstado = document.getElementById("vinEstado");
-        if (vinEstado) vinEstado.textContent = "Leyendo VIN...";
-
-        try {
             const vin = await procesarVIN(video);
 
             if (vin) {
@@ -75,41 +55,36 @@ function iniciarLecturaAutomaticaVIN(video) {
 
                 confirmacionSerie.classList.remove("oculto");
                 validarFormulario();
+                detenerScanner();
 
-                mostrarMensaje("exito", "VIN leído correctamente.");
-                detenerVINScanner();
-                return;
+            } else {
+                mostrarMensaje("error", "No se pudo leer un VIN válido. Acerca la cámara y centra solo el VIN.");
+                btnCapturarVIN.disabled = false;
+                btnCapturarVIN.textContent = "Capturar VIN";
             }
+        });
 
-            if (vinEstado) vinEstado.textContent = "Buscando VIN...";
-        } catch (error) {
-            console.warn("No se pudo procesar VIN:", error);
-            if (vinEstado) vinEstado.textContent = "Buscando VIN...";
-        }
-
-        vinOCRProcesando = false;
-
-    }, 1800);
+    } catch (error) {
+        console.error("Error al abrir cámara VIN:", error);
+        detenerScanner();
+        mostrarMensaje("error", "No se pudo abrir la cámara para leer el VIN.");
+    }
 }
 
 async function procesarVIN(video) {
     const capturas = generarCapturasProcesadas(video);
     const resultados = [];
 
-    const lecturas = await Promise.all(
-        capturas.map(imagen =>
-            Tesseract.recognize(
-                imagen,
-                "eng",
-                {
-                    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                    tessedit_pageseg_mode: "7"
-                }
-            )
-        )
-    );
+    for (const imagen of capturas) {
+        const resultado = await Tesseract.recognize(
+            imagen,
+            "eng",
+            {
+                tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                tessedit_pageseg_mode: "7"
+            }
+        );
 
-    for (const resultado of lecturas) {
         const texto = resultado.data.text || "";
         const confianza = resultado.data.confidence || 0;
         const vin = validarVIN(texto);
@@ -215,16 +190,4 @@ function procesarImagen(canvasOriginal, modo) {
     ctx.putImageData(imageData, 0, 0);
 
     return canvas.toDataURL("image/png");
-}
-
-function detenerVINScanner() {
-    vinOCRActivo = false;
-    vinOCRProcesando = false;
-
-    if (intervaloVIN) {
-        clearInterval(intervaloVIN);
-        intervaloVIN = null;
-    }
-
-    detenerScanner();
 }
