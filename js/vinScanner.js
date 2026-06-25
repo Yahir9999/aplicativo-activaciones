@@ -1,12 +1,18 @@
 const btnVinOCR = document.getElementById("btnVinOCR");
 
+let vinOCRActivo = false;
+let vinOCRProcesando = false;
+let intervaloVIN = null;
+
 btnVinOCR.addEventListener("click", leerVINConOCR);
 
 async function leerVINConOCR() {
     if (scannerActivo) detenerScanner();
 
     scannerActivo = true;
-    lecturaProcesada = false;
+    vinOCRActivo = true;
+    vinOCRProcesando = false;
+
     reader.style.display = "block";
 
     reader.innerHTML = `
@@ -14,17 +20,16 @@ async function leerVINConOCR() {
             <video id="videoVinOCR" autoplay muted playsinline></video>
 
             <div class="vin-guia">
-                Coloca solo el VIN dentro del recuadro
+                Coloca el VIN dentro del recuadro
             </div>
 
-            <button type="button" id="btnCapturarVIN" class="btn-capturar-vin">
-                Capturar VIN
-            </button>
+            <div class="vin-estado" id="vinEstado">
+                Buscando VIN...
+            </div>
         </div>
     `;
 
     const video = document.getElementById("videoVinOCR");
-    const btnCapturarVIN = document.getElementById("btnCapturarVIN");
 
     try {
         streamActivo = await navigator.mediaDevices.getUserMedia({
@@ -38,10 +43,27 @@ async function leerVINConOCR() {
         video.srcObject = streamActivo;
         await video.play();
 
-        btnCapturarVIN.addEventListener("click", async () => {
-            btnCapturarVIN.disabled = true;
-            btnCapturarVIN.textContent = "Leyendo VIN...";
+        mostrarMensaje("exito", "Apunta al VIN y mantén la cámara fija...");
 
+        iniciarLecturaAutomaticaVIN(video);
+
+    } catch (error) {
+        console.error("Error al abrir cámara VIN:", error);
+        detenerVINScanner();
+        mostrarMensaje("error", "No se pudo abrir la cámara para leer el VIN.");
+    }
+}
+
+function iniciarLecturaAutomaticaVIN(video) {
+    intervaloVIN = setInterval(async () => {
+        if (!vinOCRActivo || vinOCRProcesando) return;
+
+        vinOCRProcesando = true;
+
+        const vinEstado = document.getElementById("vinEstado");
+        if (vinEstado) vinEstado.textContent = "Leyendo VIN...";
+
+        try {
             const vin = await procesarVIN(video);
 
             if (vin) {
@@ -53,52 +75,63 @@ async function leerVINConOCR() {
 
                 confirmacionSerie.classList.remove("oculto");
                 validarFormulario();
-                detenerScanner();
-            } else {
-                mostrarMensaje("error", "No se pudo leer un VIN válido. Acerca la cámara y centra solo el VIN.");
-                btnCapturarVIN.disabled = false;
-                btnCapturarVIN.textContent = "Capturar VIN";
-            }
-        });
 
-    } catch (error) {
-        console.error(error);
-        detenerScanner();
-        mostrarMensaje("error", "No se pudo abrir la cámara para leer el VIN.");
-    }
+                mostrarMensaje("exito", "VIN leído correctamente.");
+                detenerVINScanner();
+                return;
+            }
+
+            if (vinEstado) vinEstado.textContent = "Buscando VIN...";
+        } catch (error) {
+            console.warn("No se pudo procesar VIN:", error);
+            if (vinEstado) vinEstado.textContent = "Buscando VIN...";
+        }
+
+        vinOCRProcesando = false;
+
+    }, 1800);
 }
 
 async function procesarVIN(video) {
     const capturas = generarCapturasProcesadas(video);
     const resultados = [];
 
-    for (const imagen of capturas) {
-        const resultado = await Tesseract.recognize(
-            imagen,
-            "eng",
-            {
-                tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                tessedit_pageseg_mode: "7"
-            }
-        );
+    const lecturas = await Promise.all(
+        capturas.map(imagen =>
+            Tesseract.recognize(
+                imagen,
+                "eng",
+                {
+                    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                    tessedit_pageseg_mode: "7"
+                }
+            )
+        )
+    );
 
+    for (const resultado of lecturas) {
         const texto = resultado.data.text || "";
         const confianza = resultado.data.confidence || 0;
-        const vin = extraerVIN(texto);
+        const vin = validarVIN(texto);
 
-        console.log("OCR:", texto, "VIN:", vin, "Confianza:", confianza);
+        console.log("OCR:", texto, "VIN validado:", vin, "Confianza:", confianza);
+
+        if (vin && confianza >= 80) {
+            return vin;
+        }
 
         if (vin) {
-            resultados.push({
-                vin,
-                confianza
-            });
+            resultados.push({ vin, confianza });
         }
     }
 
     if (resultados.length === 0) return null;
 
     resultados.sort((a, b) => b.confianza - a.confianza);
+
+    if (resultados[0].confianza < 55) {
+        return null;
+    }
 
     return resultados[0].vin;
 }
@@ -184,30 +217,14 @@ function procesarImagen(canvasOriginal, modo) {
     return canvas.toDataURL("image/png");
 }
 
-function extraerVIN(textoOCR) {
-    let texto = textoOCR
-        .toUpperCase()
-        .replace(/\s+/g, "")
-        .replace(/[^A-Z0-9]/g, "");
+function detenerVINScanner() {
+    vinOCRActivo = false;
+    vinOCRProcesando = false;
 
-    texto = texto
-        .replace(/^[S5]MU/, "3MU")
-        .replace(/^BMU/, "3MU")
-        .replace(/^EMU/, "3MU");
+    if (intervaloVIN) {
+        clearInterval(intervaloVIN);
+        intervaloVIN = null;
+    }
 
-    const inicio = texto.indexOf("3MU");
-
-    if (inicio === -1) return null;
-
-    const posible = texto.substring(inicio);
-
-    const match = posible.match(/3MU[A-HJ-NPR-Z0-9]{14}/);
-
-    if (!match) return null;
-
-    const vin = match[0];
-
-    if (vin.length !== 17) return null;
-
-    return vin;
+    detenerScanner();
 }
