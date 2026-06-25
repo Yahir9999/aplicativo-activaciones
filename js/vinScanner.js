@@ -14,7 +14,7 @@ async function leerVINConOCR() {
             <video id="videoVinOCR" autoplay muted playsinline></video>
 
             <div class="vin-guia">
-                Coloca la etiqueta del VIN dentro del recuadrosigu
+                Coloca la etiqueta del VIN dentro del recuadro
             </div>
 
             <button type="button" id="btnCapturarVIN" class="btn-capturar-vin">
@@ -111,8 +111,8 @@ function generarCapturasProcesadas(video) {
     const recorte = recortarZonaVIN(baseCanvas);
 
     return [
-        procesarImagen(recorte, "contraste"),
-        procesarImagen(recorte, "normal")
+        procesarImagen(recorte, "contraste")
+       
     ];
 }
 
