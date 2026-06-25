@@ -1,4 +1,4 @@
-const CACHE_NAME = "activaciones-v14";
+const CACHE_NAME = "activaciones-v16";
 
 const FILES_TO_CACHE = [
   "./",

@@ -371,9 +371,8 @@ body {
 #reader {
     width: 100%;
     max-width: 420px;
-    max-height: 280px;
     margin: 20px auto;
-    overflow: hidden;
+    overflow: visible;
     border-radius: 16px;
 }
 
@@ -381,7 +380,7 @@ body {
     width: 100% !important;
     height: 280px !important;
     object-fit: cover !important;
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
 }
 
 #reader canvas {
