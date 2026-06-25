@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activaciones</title>
 
-    <link rel="stylesheet" href="css/styles.css?v=14">
+    <link rel="stylesheet" href="css/styles.css?v=15">
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -91,6 +91,20 @@
 
                 </button>
 
+                <button type="button" 
+                    class="btn-scan btn-vin"
+                    id="btnVinOCR">
+
+                        <div class="barcode-icon">
+                            VIN
+                        </div>
+
+                        <span>
+                            LEER VIN
+                        </span>
+
+                </button>
+
                 <div id="confirmacionSerie" class="confirmacion-serie oculto">
 
                     <p>¿La serie fue registrada correctamente?</p>
@@ -159,10 +173,14 @@
 
     </main>
 
-    <<script src="https://unpkg.com/@zxing/browser@latest"></script>
+    <script src="https://unpkg.com/@zxing/browser@latest"></script>
+    <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 
-    <script src="js/app.js?v=14"></script>
-    <script src="js/scanner.js?v=14"></script>
+    <script src="js/app.js?v=15"></script>
+    <script src="js/scanner.js?v=15"></script>
+    <script src="js/vinScanner.js?v=1"></script>
+
+    
 
     <script>
 if ("serviceWorker" in navigator) {

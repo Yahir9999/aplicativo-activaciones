@@ -114,7 +114,7 @@ async function codigoLeido(decodedText) {
             .replace(/\s+/g, "")
             .toUpperCase();
 
-        const vinValido = /^[A-HJ-NPR-Z0-9]{17}$/;
+        const vinValido = /^3MU[A-HJ-NPR-Z0-9]{14}$/;
 
         if (!vinValido.test(serieLimpia)) {
             console.warn("Lectura rechazada:", serieLimpia);
