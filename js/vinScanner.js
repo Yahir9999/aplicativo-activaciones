@@ -14,7 +14,7 @@ async function leerVINConOCR() {
             <video id="videoVinOCR" autoplay muted playsinline></video>
 
             <div class="vin-guia">
-                Coloca solo el VIN dentro del recuadro
+                Coloca la etiqueta del VIN dentro del recuadro
             </div>
 
             <button type="button" id="btnCapturarVIN" class="btn-capturar-vin">
@@ -136,10 +136,10 @@ function recortarZonaVIN(canvasOriginal) {
     const ancho = canvasOriginal.width;
     const alto = canvasOriginal.height;
 
-    const cropX = ancho * 0.08;
-    const cropY = alto * 0.36;
-    const cropW = ancho * 0.84;
-    const cropH = alto * 0.28;
+    const cropX = ancho * 0.02;
+    const cropY = alto * 0.18;
+    const cropW = ancho * 0.96;
+    const cropH = alto * 0.64;
 
     canvas.width = cropW * 3;
     canvas.height = cropH * 3;
