@@ -14,7 +14,7 @@ async function leerVINConOCR() {
             <video id="videoVinOCR" autoplay muted playsinline></video>
 
             <div class="vin-guia">
-                Coloca la etiqueta del VIN dentro del recuadro
+                Coloca la etiqueta del VIN dentro del recuadrosigu
             </div>
 
             <button type="button" id="btnCapturarVIN" class="btn-capturar-vin">
@@ -73,7 +73,6 @@ async function leerVINConOCR() {
 
 async function procesarVIN(video) {
     const capturas = generarCapturasProcesadas(video);
-    const resultados = [];
 
     for (const imagen of capturas) {
         const resultado = await Tesseract.recognize(
@@ -89,27 +88,16 @@ async function procesarVIN(video) {
         const confianza = resultado.data.confidence || 0;
         const vin = validarVIN(texto);
 
-        console.log("OCR:", texto, "VIN validado:", vin, "Confianza:", confianza);
-
-        if (vin && confianza >= 80) {
-            return vin;
-        }
+        console.log("OCR:", texto, "VIN:", vin, "Confianza:", confianza);
 
         if (vin) {
-            resultados.push({ vin, confianza });
+            return vin;
         }
     }
 
-    if (resultados.length === 0) return null;
-
-    resultados.sort((a, b) => b.confianza - a.confianza);
-
-    if (resultados[0].confianza < 55) {
-        return null;
-    }
-
-    return resultados[0].vin;
+    return null;
 }
+
 
 function generarCapturasProcesadas(video) {
     const baseCanvas = document.createElement("canvas");
@@ -123,9 +111,8 @@ function generarCapturasProcesadas(video) {
     const recorte = recortarZonaVIN(baseCanvas);
 
     return [
-        procesarImagen(recorte, "normal"),
         procesarImagen(recorte, "contraste"),
-        procesarImagen(recorte, "binarizado")
+        procesarImagen(recorte, "normal")
     ];
 }
 
@@ -136,13 +123,13 @@ function recortarZonaVIN(canvasOriginal) {
     const ancho = canvasOriginal.width;
     const alto = canvasOriginal.height;
 
-    const cropX = ancho * 0.02;
-    const cropY = alto * 0.18;
-    const cropW = ancho * 0.96;
-    const cropH = alto * 0.64;
+    const cropX = ancho * 0.05;
+    const cropY = alto * 0.30;
+    const cropW = ancho * 0.90;
+    const cropH = alto * 0.34;
 
-    canvas.width = cropW * 3;
-    canvas.height = cropH * 3;
+    canvas.width = cropW * 2;
+    canvas.height = cropH * 2;
 
     ctx.drawImage(
         canvasOriginal,
