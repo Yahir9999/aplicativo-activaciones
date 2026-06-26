@@ -11,13 +11,11 @@ const reader = document.getElementById("reader");
 btnScanner.addEventListener("click", iniciarScanner);
 
 async function iniciarScanner() {
-    detenerTodoScanner();
+    detenerTodoScanner(); // Nota: Asegúrate que esta función exista, o usa detenerScanner()
 
     scannerActivo = true;
     lecturaProcesada = false;
     reader.style.display = "block";
-
-    // lo demás queda igual
 
     reader.innerHTML = `
         <video
@@ -33,32 +31,38 @@ async function iniciarScanner() {
 
     try {
         if ("BarcodeDetector" in window) {
-            await iniciarScannerNativo(video);
-        } else {
-            await iniciarScannerZXing(video);
+            // Verificar si el navegador realmente soporta los formatos que necesitamos
+            const formatosSoportados = await BarcodeDetector.getSupportedFormats();
+            if (formatosSoportados.includes("code_128") || formatosSoportados.includes("code_39")) {
+                await iniciarScannerNativo(video);
+                return;
+            }
         }
+        // Si no es nativo o no soporta los formatos, usar ZXing
+        await iniciarScannerZXing(video);
     } catch (error) {
         console.error("Error al abrir cámara:", error);
-        detenerTodoScanner();
+        detenerScanner();
         mostrarMensaje("error", "No se pudo abrir la cámara.");
     }
 }
 
 async function iniciarScannerNativo(video) {
     detectorBarcode = new BarcodeDetector({
-        formats: ["code_128", "code_39", "code_93"]
+        formats: ["code_128", "code_39"] // Reducido solo a los dos más comunes de VIN
     });
 
+    // OPTIMIZACIÓN 1: Subir resolución a Full HD (1080p) para que las líneas del VIN no se junten
     streamActivo = await navigator.mediaDevices.getUserMedia({
         video: {
             facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
+            width: { ideal: 1920, min: 1280 },
+            height: { ideal: 1080, min: 720 },
+            focusMode: "continuous"
         }
     });
 
     video.srcObject = streamActivo;
-
     await video.play();
 
     escanearConBarcodeDetector(video);
@@ -74,9 +78,13 @@ async function escanearConBarcodeDetector(video) {
             const codigo = codigos[0].rawValue;
 
             if (codigo && !lecturaProcesada) {
-                lecturaProcesada = true;
-                codigoLeido(codigo);
-                return;
+                // Validación rápida antes de detener el flujo para ahorrar tiempo
+                const serieLimpia = codigo.trim().replace(/\s+/g, "").toUpperCase();
+                if (/^3MU[A-HJ-NPR-Z0-9]{14}$/.test(serieLimpia)) {
+                    lecturaProcesada = true;
+                    codigoLeido(serieLimpia);
+                    return;
+                }
             }
         }
     } catch (error) {
@@ -85,45 +93,52 @@ async function escanearConBarcodeDetector(video) {
         return;
     }
 
-    requestAnimationFrame(() => escanearConBarcodeDetector(video));
+    // OPTIMIZACIÓN 2: No saturar el procesador. Esperar 300ms entre capturas en lugar de ir a 60fps
+    setTimeout(() => {
+        if (scannerActivo && !lecturaProcesada) {
+            requestAnimationFrame(() => escanearConBarcodeDetector(video));
+        }
+    }, 300); 
 }
 
 async function iniciarScannerZXing(video) {
-    codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+    // OPTIMIZACIÓN 3: Decirle a ZXing EXACTAMENTE qué formatos buscar (Pistas / Hints)
+    const hints = new Map();
+    const formats = [ZXingBrowser.BarcodeFormat.CODE_128, ZXingBrowser.BarcodeFormat.CODE_39];
+    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+    // Intentar lectura más profunda (útil para cámaras lentas o etiquetas desgastadas)
+    hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true); 
+
+    codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
 
     controls = await codeReader.decodeFromConstraints(
         {
             video: {
                 facingMode: "environment",
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                width: { ideal: 1920, min: 1280 },
+                height: { ideal: 1080, min: 720 },
+                focusMode: "continuous"
             }
         },
         video,
         (result, error) => {
             if (result && !lecturaProcesada) {
-                lecturaProcesada = true;
-                codigoLeido(result.getText());
+                const texto = result.getText();
+                const serieLimpia = texto.trim().replace(/\s+/g, "").toUpperCase();
+                
+                // OPTIMIZACIÓN 4: Validar el patrón ANTES de dar por exitosa la lectura
+                if (/^3MU[A-HJ-NPR-Z0-9]{14}$/.test(serieLimpia)) {
+                    lecturaProcesada = true;
+                    codigoLeido(serieLimpia);
+                }
             }
         }
     );
 }
 
-async function codigoLeido(decodedText) {
+async function codigoLeido(serieLimpia) {
     try {
-        const serieLimpia = decodedText
-            .trim()
-            .replace(/\s+/g, "")
-            .toUpperCase();
-
-        const vinValido = /^3MU[A-HJ-NPR-Z0-9]{14}$/;
-
-        if (!vinValido.test(serieLimpia)) {
-            console.warn("Lectura rechazada:", serieLimpia);
-            lecturaProcesada = false;
-            return;
-        }
-
+        // Como ya viene validado y limpio desde los lectores, el código es directo
         serie.value = serieLimpia;
         serie.readOnly = true;
         serieEscaneada = true;
@@ -133,10 +148,8 @@ async function codigoLeido(decodedText) {
         }
 
         confirmacionSerie.classList.remove("oculto");
-
         validarFormulario();
-
-        detenerTodoScanner();
+        detenerScanner(); // Cambiado para asegurar limpieza completa
 
     } catch (error) {
         console.error("Error procesando lectura:", error);
@@ -168,4 +181,9 @@ function detenerScanner() {
     } catch (error) {
         console.error("Error al detener scanner:", error);
     }
+}
+
+// Alias por si usas este nombre en 'iniciarScanner'
+function detenerTodoScanner() {
+    detenerScanner();
 }
