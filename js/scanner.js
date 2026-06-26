@@ -102,13 +102,30 @@ async function escanearConBarcodeDetector(video) {
 }
 
 async function iniciarScannerZXing(video) {
-    // OPTIMIZACIÓN 3: Decirle a ZXing EXACTAMENTE qué formatos buscar (Pistas / Hints)
-    const hints = new Map();
-    const formats = [ZXingBrowser.BarcodeFormat.CODE_128, ZXingBrowser.BarcodeFormat.CODE_39];
-    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
-    // Intentar lectura más profunda (útil para cámaras lentas o etiquetas desgastadas)
-    hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true); 
+    // Detectar dinámicamente dónde están alojados los formatos (ZXing vs ZXingBrowser)
+    const ZXingGlobal = typeof ZXing !== 'undefined' ? ZXing : (typeof ZXingBrowser !== 'undefined' ? ZXingBrowser : null);
 
+    if (!ZXingGlobal) {
+        console.error("No se encontró la librería ZXing cargada en el navegador.");
+        return;
+    }
+
+    const hints = new Map();
+    
+    // Configurar los formatos de forma segura buscando en el objeto correcto
+    const formats = [
+        ZXingGlobal.BarcodeFormat.CODE_128 || 1, // El número es el fallback interno por si acaso
+        ZXingGlobal.BarcodeFormat.CODE_39 || 2
+    ];
+    
+    // Configurar las pistas de decodificación de forma segura
+    const possibleFormatsHint = ZXingGlobal.DecodeHintType ? ZXingGlobal.DecodeHintType.POSSIBLE_FORMATS : 2;
+    const tryHarderHint = ZXingGlobal.DecodeHintType ? ZXingGlobal.DecodeHintType.TRY_HARDER : 4;
+
+    hints.set(possibleFormatsHint, formats);
+    hints.set(tryHarderHint, true); 
+
+    // Instanciar el lector pasando las optimizaciones
     codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
 
     controls = await codeReader.decodeFromConstraints(
@@ -126,7 +143,6 @@ async function iniciarScannerZXing(video) {
                 const texto = result.getText();
                 const serieLimpia = texto.trim().replace(/\s+/g, "").toUpperCase();
                 
-                // OPTIMIZACIÓN 4: Validar el patrón ANTES de dar por exitosa la lectura
                 if (/^3MU[A-HJ-NPR-Z0-9]{14}$/.test(serieLimpia)) {
                     lecturaProcesada = true;
                     codigoLeido(serieLimpia);
