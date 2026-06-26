@@ -11,11 +11,13 @@ const reader = document.getElementById("reader");
 btnScanner.addEventListener("click", iniciarScanner);
 
 async function iniciarScanner() {
-    if (scannerActivo) return;
+    detenerTodoScanner();
 
     scannerActivo = true;
     lecturaProcesada = false;
     reader.style.display = "block";
+
+    // lo demás queda igual
 
     reader.innerHTML = `
         <video
@@ -37,7 +39,7 @@ async function iniciarScanner() {
         }
     } catch (error) {
         console.error("Error al abrir cámara:", error);
-        detenerScanner();
+        detenerTodoScanner();
         mostrarMensaje("error", "No se pudo abrir la cámara.");
     }
 }
@@ -134,7 +136,7 @@ async function codigoLeido(decodedText) {
 
         validarFormulario();
 
-        detenerScanner();
+        detenerTodoScanner();
 
     } catch (error) {
         console.error("Error procesando lectura:", error);

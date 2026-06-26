@@ -3,7 +3,7 @@ const btnVinOCR = document.getElementById("btnVinOCR");
 btnVinOCR.addEventListener("click", leerVINConOCR);
 
 async function leerVINConOCR() {
-    if (scannerActivo) detenerScanner();
+    detenerTodoScanner();
 
     scannerActivo = true;
     lecturaProcesada = false;
@@ -30,8 +30,8 @@ async function leerVINConOCR() {
         streamActivo = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: "environment",
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
             }
         });
 
@@ -55,10 +55,10 @@ async function leerVINConOCR() {
 
                 confirmacionSerie.classList.remove("oculto");
                 validarFormulario();
-                detenerScanner();
+                detenerTodoScanner();
 
             } else {
-                mostrarMensaje("error", "No se pudo leer un VIN válido. Acerca la cámara y centra solo el VIN.");
+                mostrarMensaje("error", "No se pudo leer un VIN válido. Acerca la cámara y centra la etiqueta.");
                 btnCapturarVIN.disabled = false;
                 btnCapturarVIN.textContent = "Capturar VIN";
             }
@@ -66,7 +66,7 @@ async function leerVINConOCR() {
 
     } catch (error) {
         console.error("Error al abrir cámara VIN:", error);
-        detenerScanner();
+        detenerTodoScanner();
         mostrarMensaje("error", "No se pudo abrir la cámara para leer el VIN.");
     }
 }
@@ -74,9 +74,9 @@ async function leerVINConOCR() {
 async function procesarVIN(video) {
     const capturas = generarCapturasProcesadas(video);
 
-    for (const imagen of capturas) {
+    for (let i = 0; i < capturas.length; i++) {
         const resultado = await Tesseract.recognize(
-            imagen,
+            capturas[i],
             "eng",
             {
                 tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -85,19 +85,15 @@ async function procesarVIN(video) {
         );
 
         const texto = resultado.data.text || "";
-        const confianza = resultado.data.confidence || 0;
         const vin = validarVIN(texto);
 
-        console.log("OCR:", texto, "VIN:", vin, "Confianza:", confianza);
+        console.log("Intento:", i + 1, "OCR:", texto, "VIN:", vin);
 
-        if (vin) {
-            return vin;
-        }
+        if (vin) return vin;
     }
 
     return null;
 }
-
 
 function generarCapturasProcesadas(video) {
     const baseCanvas = document.createElement("canvas");
@@ -111,8 +107,9 @@ function generarCapturasProcesadas(video) {
     const recorte = recortarZonaVIN(baseCanvas);
 
     return [
-        procesarImagen(recorte, "contraste")
-       
+        procesarImagen(recorte, "contraste"),
+        procesarImagen(recorte, "normal"),
+        procesarImagen(recorte, "binarizado")
     ];
 }
 
@@ -177,4 +174,30 @@ function procesarImagen(canvasOriginal, modo) {
     ctx.putImageData(imageData, 0, 0);
 
     return canvas.toDataURL("image/png");
+}
+
+function detenerTodoScanner() {
+    try {
+        if (controls) {
+            controls.stop();
+            controls = null;
+        }
+
+        if (streamActivo) {
+            streamActivo.getTracks().forEach(track => track.stop());
+            streamActivo = null;
+        }
+
+        codeReader = null;
+        detectorBarcode = null;
+
+        reader.innerHTML = "";
+        reader.style.display = "none";
+
+        scannerActivo = false;
+        lecturaProcesada = false;
+
+    } catch (error) {
+        console.error("Error al detener scanner:", error);
+    }
 }
