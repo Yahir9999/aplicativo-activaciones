@@ -334,3 +334,121 @@ function mostrarMensaje(tipo, texto) {
         mensaje.textContent = "";
     }, 3500);
 }
+
+// ==============================
+// HISTORIAL DE ACTIVACIONES
+// ==============================
+
+const pantallaFormulario = document.getElementById("pantallaFormulario");
+const pantallaHistorial = document.getElementById("pantallaHistorial");
+
+const btnMenu = document.getElementById("btnMenu");
+const menuOpciones = document.getElementById("menuOpciones");
+const btnHistorial = document.getElementById("btnHistorial");
+const btnVolverFormulario = document.getElementById("btnVolverFormulario");
+
+const historialCedi = document.getElementById("historialCedi");
+const historialTecnico = document.getElementById("historialTecnico");
+const historialPeriodo = document.getElementById("historialPeriodo");
+const btnBuscarHistorial = document.getElementById("btnBuscarHistorial");
+const resultadoHistorial = document.getElementById("resultadoHistorial");
+
+btnMenu.addEventListener("click", () => {
+    menuOpciones.style.display =
+        menuOpciones.style.display === "block" ? "none" : "block";
+});
+
+btnHistorial.addEventListener("click", () => {
+    menuOpciones.style.display = "none";
+
+    pantallaFormulario.classList.add("oculto");
+    pantallaHistorial.classList.remove("oculto");
+
+    cargarFiltrosHistorial();
+});
+
+btnVolverFormulario.addEventListener("click", () => {
+    pantallaHistorial.classList.add("oculto");
+    pantallaFormulario.classList.remove("oculto");
+
+    resultadoHistorial.innerHTML = "";
+});
+
+historialCedi.addEventListener("change", () => {
+    cargarTecnicosHistorial();
+    resultadoHistorial.innerHTML = "";
+});
+
+btnBuscarHistorial.addEventListener("click", buscarHistorial);
+
+function cargarFiltrosHistorial() {
+    if (!catalogos.cedis || !catalogos.usuarios) return;
+
+    llenarSelect(historialCedi, catalogos.cedis, "CEDI", "CEDI");
+
+    historialCedi.value = cedi.value || "";
+    cargarTecnicosHistorial();
+
+    historialTecnico.value = activador.value || "";
+}
+
+function cargarTecnicosHistorial() {
+    const cediSeleccionado = historialCedi.value;
+
+    const tecnicos = catalogos.usuarios.filter(item =>
+        item.CEDI === cediSeleccionado
+    );
+
+    llenarSelect(historialTecnico, tecnicos, "ACTIVADOR", "ACTIVADOR");
+}
+
+async function buscarHistorial() {
+    const cediValor = historialCedi.value;
+    const tecnicoValor = historialTecnico.value;
+    const periodoValor = historialPeriodo.value;
+
+    if (!cediValor || !tecnicoValor) {
+        resultadoHistorial.innerHTML = `
+            <p>Selecciona CEDI y técnico.</p>
+        `;
+        return;
+    }
+
+    resultadoHistorial.innerHTML = `<p>Buscando historial...</p>`;
+
+    try {
+        const respuesta = await fetch(
+            `${URL_SCRIPT}?action=historial`
+            + `&cedi=${encodeURIComponent(cediValor)}`
+            + `&activador=${encodeURIComponent(tecnicoValor)}`
+            + `&periodo=${encodeURIComponent(periodoValor)}`
+        );
+
+        const data = await respuesta.json();
+
+        if (!data.ok || !data.series || data.series.length === 0) {
+            resultadoHistorial.innerHTML = `
+                <div class="total-historial">
+                    Total activadas: 0
+                </div>
+            `;
+            return;
+        }
+
+        resultadoHistorial.innerHTML = `
+            <div class="lista-series">
+                ${data.series.map(serie => `<p>${serie}</p>`).join("")}
+            </div>
+
+            <div class="total-historial">
+                Total activadas: ${data.total}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error(error);
+        resultadoHistorial.innerHTML = `
+            <p>Error al consultar historial.</p>
+        `;
+    }
+}

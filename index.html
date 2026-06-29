@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activaciones</title>
 
-    <link rel="stylesheet" href="css/styles.css?v=17">
+    <link rel="stylesheet" href="css/styles.css?v=18">
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -17,11 +17,21 @@
 
 <body>
 
-    <main class="container">
+    <main class="container" id="pantallaFormulario">
 
         <header class="app-header">
+
+            <div class="menu-wrapper">
+                <button id="btnMenu" class="btn-menu" type="button">⋮</button>
+
+                <div id="menuOpciones" class="menu-opciones">
+                    <button id="btnHistorial" type="button">Historial</button>
+                </div>
+            </div>
+
             <img src="assets/logo.png" alt="Logo">
             <h1>REGISTRO DE ACTIVACIONES</h1>
+
         </header>
 
         <!-- DATOS GENERALES -->
@@ -171,13 +181,57 @@
 
         </section>
 
+
+
     </main>
+
+            <!-- INICIO HISTORIAL -->
+        <section id="pantallaHistorial" class="pantalla-historial oculto">
+
+            <div class="historial-header">
+                <button type="button" id="btnVolverFormulario" class="btn-volver">
+                    ←
+                </button>
+
+                <h2>Historial</h2>
+            </div>
+
+            <div class="card historial">
+
+                <div class="campo">
+                    <label>CEDI</label>
+                    <select id="historialCedi"></select>
+                </div>
+
+                <div class="campo">
+                    <label>Técnico</label>
+                    <select id="historialTecnico"></select>
+                </div>
+
+                <div class="campo">
+                    <label>Periodo</label>
+                    <select id="historialPeriodo">
+                        <option value="dia">Hoy</option>
+                        <option value="semana">Semana actual</option>
+                    </select>
+                </div>
+
+                <button id="btnBuscarHistorial" class="btn" type="button">
+                    Buscar historial
+                </button>
+
+                <div id="resultadoHistorial"></div>
+
+            </div>
+
+        </section>
+        <!-- FIN HISTORIAL -->
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 
-    <script src="js/app.js?v=18"></script>
+    <script src="js/app.js?v=19"></script>
     <script src="js/scanner.js?v=19"></script>
 
     <script src="js/vinValidator.js?v=2"></script>
