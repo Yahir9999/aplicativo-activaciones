@@ -73,41 +73,46 @@ async function iniciarScanner() {
 }
 
 async function iniciarScannerZXing(video) {
-    const ZXingGlobal =
-        typeof ZXing !== "undefined"
-            ? ZXing
-            : typeof ZXingBrowser !== "undefined"
-                ? ZXingBrowser
-                : null;
-
-    if (!ZXingGlobal || !ZXingBrowser) {
-        mostrarMensaje("error", "No se encontró la librería del scanner.");
+    if (typeof ZXingBrowser === "undefined") {
+        mostrarMensaje("error", "No se encontró ZXing Browser.");
         return;
     }
 
+    const ZXingLib =
+        typeof ZXing !== "undefined"
+            ? ZXing
+            : ZXingBrowser;
+
     const hints = new Map();
 
-    const formats = [
-        ZXingGlobal.BarcodeFormat.CODE_128
-    ];
+    const barcodeFormat =
+        ZXingLib.BarcodeFormat?.CODE_128 ??
+        ZXingBrowser.BarcodeFormat?.CODE_128 ??
+        4;
 
-    hints.set(ZXingGlobal.DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(ZXingGlobal.DecodeHintType.TRY_HARDER, true);
-    hints.set(ZXingGlobal.DecodeHintType.ASSUME_CODE_39_CHECK_DIGIT, false);
+    const possibleFormats =
+        ZXingLib.DecodeHintType?.POSSIBLE_FORMATS ??
+        ZXingBrowser.DecodeHintType?.POSSIBLE_FORMATS ??
+        2;
+
+    const tryHarder =
+        ZXingLib.DecodeHintType?.TRY_HARDER ??
+        ZXingBrowser.DecodeHintType?.TRY_HARDER ??
+        4;
+
+    hints.set(possibleFormats, [barcodeFormat]);
+    hints.set(tryHarder, true);
 
     codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints, {
-        delayBetweenScanAttempts: 80,
+        delayBetweenScanAttempts: 70,
         delayBetweenScanSuccess: 300
     });
 
     const constraints = {
         video: {
             facingMode: { ideal: "environment" },
-
-            // Más ligero para Android viejitos que 1920x1080
             width: { ideal: 1280 },
             height: { ideal: 720 },
-
             advanced: [
                 { focusMode: "continuous" },
                 { exposureMode: "continuous" }
@@ -122,8 +127,7 @@ async function iniciarScannerZXing(video) {
             if (!scannerActivo || lecturaProcesada) return;
 
             if (result) {
-                const texto = result.getText();
-                const serieLimpia = limpiarSerie(texto);
+                const serieLimpia = limpiarSerie(result.getText());
 
                 if (esVINValido(serieLimpia)) {
                     lecturaProcesada = true;
@@ -140,11 +144,11 @@ async function iniciarScannerZXing(video) {
 
     setTimeout(() => {
         aplicarMejorasCamara(video);
-    }, 800);
+    }, 700);
 }
 
 function limpiarSerie(texto) {
-    return texto
+    return String(texto || "")
         .trim()
         .replace(/\s+/g, "")
         .replace(/[^A-Z0-9]/gi, "")
@@ -152,7 +156,6 @@ function limpiarSerie(texto) {
 }
 
 function esVINValido(valor) {
-    // VIN de 17 caracteres, sin I, O, Q
     return /^[A-HJ-NPR-Z0-9]{17}$/.test(valor);
 }
 
@@ -166,11 +169,9 @@ async function aplicarMejorasCamara(video) {
         const track = stream.getVideoTracks()[0];
         if (!track) return;
 
-        const capabilities = track.getCapabilities();
-        const settings = track.getSettings();
+        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
         const advanced = [];
 
-        // Zoom automático si Android lo permite
         if (capabilities.zoom) {
             const zoomMax = capabilities.zoom.max || 1;
             const zoomIdeal = Math.min(2, zoomMax);
@@ -180,16 +181,23 @@ async function aplicarMejorasCamara(video) {
             }
         }
 
-        // Enfoque continuo si está disponible
-        if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
+        if (
+            capabilities.focusMode &&
+            capabilities.focusMode.includes("continuous")
+        ) {
             advanced.push({ focusMode: "continuous" });
+        }
+
+        if (
+            capabilities.exposureMode &&
+            capabilities.exposureMode.includes("continuous")
+        ) {
+            advanced.push({ exposureMode: "continuous" });
         }
 
         if (advanced.length > 0) {
             await track.applyConstraints({ advanced });
         }
-
-        console.log("Mejoras cámara aplicadas:", settings);
 
     } catch (error) {
         console.warn("No se pudieron aplicar mejoras de cámara:", error);
@@ -207,6 +215,7 @@ async function codigoLeido(serieLimpia) {
         }
 
         confirmacionSerie.classList.remove("oculto");
+
         validarFormulario();
         detenerScanner();
 
@@ -226,6 +235,10 @@ function detenerScanner() {
         if (streamActivo) {
             streamActivo.getTracks().forEach(track => track.stop());
             streamActivo = null;
+        }
+
+        if (codeReader && codeReader.reset) {
+            codeReader.reset();
         }
 
         codeReader = null;
