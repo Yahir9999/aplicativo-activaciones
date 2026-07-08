@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activaciones</title>
 
-    <link rel="stylesheet" href="css/styles.css?v=18">
+    <link rel="stylesheet" href="css/styles.css?v=19">
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -67,14 +67,15 @@
 
             <div class="campo">
                 <label for="modelo">Modelo</label>
-                <input 
-                    type="text" 
-                    id="modelo" 
-                    list="listaModelos"
-                    placeholder="Escribe o selecciona modelo"
-                    autocomplete="off">
+                <div class="buscador-wrapper">
+                    <input 
+                        type="text" 
+                        id="modelo" 
+                        placeholder="Escribe o selecciona modelo"
+                        autocomplete="off">
 
-                <datalist id="listaModelos"></datalist>
+                    <div id="listaModelos" class="lista-buscador oculto"></div>
+                </div>
             </div>
 
             <div class="campo">
@@ -153,9 +154,15 @@
 
             <div class="campo">
                 <label for="agencia">Agencia</label>
-                <select id="agencia">
-                    <option value="">Seleccionar</option>
-                </select>
+                <div class="buscador-wrapper">
+                    <input 
+                        type="text" 
+                        id="agencia" 
+                        placeholder="Escribe o selecciona agencia"
+                        autocomplete="off">
+
+                    <div id="listaAgencias" class="lista-buscador oculto"></div>
+                </div>
             </div>
 
             <div class="campo">
@@ -231,7 +238,7 @@
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 
-    <script src="js/app.js?v=19"></script>
+    <script src="js/app.js?v=20"></script>
     <script src="js/scanner.js?v=19"></script>
 
     <script src="js/vinValidator.js?v=2"></script>

@@ -34,6 +34,7 @@ const confirmacionSerie = document.getElementById("confirmacionSerie");
 const btnSerieSi = document.getElementById("btnSerieSi");
 const btnSerieNo = document.getElementById("btnSerieNo");
 const listaModelos = document.getElementById("listaModelos");
+const listaAgencias = document.getElementById("listaAgencias");
 
 
 // ==============================
@@ -121,6 +122,73 @@ function llenarSelect(select, datos, campoValor, campoTexto) {
     });
 }
 
+
+//funcion para buscar agencia manualmente
+// ==============================
+// BUSCADOR
+// ==============================
+
+function activarBuscador(input, lista, opciones) {
+
+    input.addEventListener("input", () => {
+
+        const texto = input.value.trim().toUpperCase();
+
+        lista.innerHTML = "";
+
+        if (texto === "") {
+            lista.classList.add("oculto");
+            return;
+        }
+
+        const coincidencias = opciones
+            .filter(opcion =>
+                opcion.toUpperCase().includes(texto)
+            )
+            .slice(0, 10);
+
+        if (coincidencias.length === 0) {
+            lista.classList.add("oculto");
+            return;
+        }
+
+        coincidencias.forEach(opcion => {
+
+            const item = document.createElement("div");
+
+            item.className = "opcion-buscador";
+            item.textContent = opcion;
+
+            item.onclick = () => {
+                input.value = opcion;
+                lista.innerHTML = "";
+                lista.classList.add("oculto");
+                validarFormulario();
+            };
+
+            lista.appendChild(item);
+
+        });
+
+        lista.classList.remove("oculto");
+
+    });
+
+    document.addEventListener("click", e => {
+
+        if (
+            !input.contains(e.target) &&
+            !lista.contains(e.target)
+        ) {
+            lista.classList.add("oculto");
+        }
+
+    });
+
+}
+
+
+
 function cargarActivadoresPorCedi() {
     const cediSeleccionado = cedi.value;
 
@@ -143,18 +211,18 @@ function cargarAgenciasPorCedi() {
 
 // funcion para que los  modelos se llenen solos
 function llenarDatalistModelos(datos) {
-    listaModelos.innerHTML = "";
 
     const modelosOrdenados = datos
         .map(item => item.MODELO)
-        .filter(modelo => modelo !== "" && modelo !== undefined && modelo !== null)
-        .sort((a, b) => String(a).localeCompare(String(b), "es"));
+        .filter(modelo => modelo)
+        .sort((a, b) => a.localeCompare(b, "es"));
 
-    modelosOrdenados.forEach(modelo => {
-        const option = document.createElement("option");
-        option.value = modelo;
-        listaModelos.appendChild(option);
-    });
+    activarBuscador(
+        modelo,
+        listaModelos,
+        modelosOrdenados
+    );
+
 }
 
 // ==============================
