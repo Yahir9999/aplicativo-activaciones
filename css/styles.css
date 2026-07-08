@@ -676,3 +676,35 @@ body {
 .opcion-buscador:last-child {
     border-bottom: none;
 }
+
+
+.tabla-historial {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.tabla-historial table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+}
+
+.tabla-historial th,
+.tabla-historial td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.tabla-historial th {
+    background: #111;
+    color: #fff;
+}
+
+.tabla-historial td {
+    color: #111;
+}

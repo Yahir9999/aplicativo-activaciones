@@ -506,7 +506,7 @@ async function buscarHistorial() {
 
         const data = await respuesta.json();
 
-        if (!data.ok || !data.series || data.series.length === 0) {
+        if (!data.ok || !data.registros || data.registros.length === 0) {
             resultadoHistorial.innerHTML = `
                 <div class="total-historial">
                     Total activadas: 0
@@ -516,14 +516,32 @@ async function buscarHistorial() {
         }
 
         resultadoHistorial.innerHTML = `
-            <div class="lista-series">
-                ${data.series.map(serie => `<p>${serie}</p>`).join("")}
-            </div>
+    <div class="tabla-historial">
+        <table>
+            <thead>
+                <tr>
+                    <th>Serie</th>
+                    <th>Modelo</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
 
-            <div class="total-historial">
-                Total activadas: ${data.total}
-            </div>
-        `;
+            <tbody>
+                ${data.registros.map(item => `
+                    <tr>
+                        <td>${item.serie}</td>
+                        <td>${item.modelo}</td>
+                        <td>${item.fecha}</td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="total-historial">
+        Total activadas: ${data.total}
+    </div>
+`;
 
     } catch (error) {
         console.error(error);
