@@ -202,11 +202,23 @@ function cargarActivadoresPorCedi() {
 function cargarAgenciasPorCedi() {
     const cediSeleccionado = cedi.value;
 
-    const filtradas = catalogos.agencias.filter(item =>
-        item.CEDI === cediSeleccionado
+    agencia.value = "";
+    listaAgencias.innerHTML = "";
+    listaAgencias.classList.add("oculto");
+
+    const agenciasOrdenadas = catalogos.agencias
+        .filter(item => item.CEDI === cediSeleccionado)
+        .map(item => item.AGENCIA)
+        .filter(agencia => agencia)
+        .sort((a, b) => a.localeCompare(b, "es"));
+
+    activarBuscador(
+        agencia,
+        listaAgencias,
+        agenciasOrdenadas
     );
 
-    llenarSelect(agencia, filtradas, "AGENCIA", "AGENCIA");
+    validarFormulario();
 }
 
 // funcion para que los  modelos se llenen solos
