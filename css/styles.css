@@ -708,3 +708,44 @@ body {
 .tabla-historial td {
     color: #111;
 }
+
+
+/* BOTÓN ESCRIBIR SERIE */
+#btnEscribirSerie {
+    width: 300px;
+    height: 66px;
+    margin: 10px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    border: none;
+    border-radius: 22px;
+
+    background: #ffffff;
+    color: #062b6f;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+#btnEscribirSerie .barcode-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+#btnEscribirSerie span {
+    font-weight: 700;
+}
+
+#btnEscribirSerie:hover {
+    transform: scale(1.02);
+}
+
+#btnEscribirSerie:active {
+    transform: scale(0.98);
+}
