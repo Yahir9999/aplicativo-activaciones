@@ -208,7 +208,8 @@ async function codigoLeido(serieLimpia) {
     try {
         serie.value = serieLimpia;
         serie.readOnly = true;
-        serieEscaneada = true;
+
+        serieConfirmada = false;
 
         if (navigator.vibrate) {
             navigator.vibrate([80, 40, 80]);

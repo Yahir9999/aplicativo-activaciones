@@ -11,7 +11,7 @@ const TIPOS_ESTRUCTURA = [
 
 let catalogos = {};
 let guardando = false;
-let serieEscaneada = false;
+let serieConfirmada = false;
 
 // ==============================
 // ELEMENTOS HTML
@@ -35,6 +35,52 @@ const btnSerieSi = document.getElementById("btnSerieSi");
 const btnSerieNo = document.getElementById("btnSerieNo");
 const listaModelos = document.getElementById("listaModelos");
 const listaAgencias = document.getElementById("listaAgencias");
+const inputSerie = document.getElementById("serie");
+const btnEscribirSerie = document.getElementById("btnEscribirSerie");
+
+
+
+btnEscribirSerie.addEventListener("click", () => {
+
+    inputSerie.removeAttribute("readonly");
+
+    inputSerie.value = "";
+
+    serieConfirmada = false;
+
+    confirmacionSerie.classList.add("oculto");
+
+    inputSerie.focus();
+
+});
+
+inputSerie.addEventListener("blur", () => {
+
+    const valor = inputSerie.value
+        .trim()
+        .replace(/\s+/g, "")
+        .toUpperCase();
+
+    inputSerie.value = valor;
+
+    if (valor === "") {
+        return;
+    }
+
+    if (!esVINValido(valor)) {
+        mostrarMensaje(
+            "error",
+            "El VIN debe tener 17 caracteres válidos."
+        );
+
+        serieConfirmada = false;
+        validarFormulario();
+        return;
+    }
+
+    confirmacionSerie.classList.remove("oculto");
+
+});
 
 
 // ==============================
@@ -250,18 +296,19 @@ function validarFormulario() {
     const litrosValor = Number(litros.value);
 
     const valido =
-        cedi.value.trim() !== "" &&
-        activador.value.trim() !== "" &&
-        fecha.value.trim() !== "" &&
-        modelo.value.trim() !== "" &&
-        serie.value.trim() !== "" &&
-        to.value.trim() !== "" &&
-        agencia.value.trim() !== "" &&
-        tipoEstructura.value.trim() !== "" &&
-        litros.value.trim() !== "" &&
-        !isNaN(litrosValor) &&
-        litrosValor >= 0 &&
-        litrosValor <= 9;
+    cedi.value.trim() !== "" &&
+    activador.value.trim() !== "" &&
+    fecha.value.trim() !== "" &&
+    modelo.value.trim() !== "" &&
+    serie.value.trim() !== "" &&
+    serieConfirmada &&
+    to.value.trim() !== "" &&
+    agencia.value.trim() !== "" &&
+    tipoEstructura.value.trim() !== "" &&
+    litros.value.trim() !== "" &&
+    !isNaN(litrosValor) &&
+    litrosValor >= 0 &&
+    litrosValor <= 9;
 
     btnRegistrar.disabled = !valido;
 }
@@ -286,16 +333,48 @@ function escucharCambios() {
 }
 
 btnSerieSi.addEventListener("click", () => {
+
+    const valor = serie.value
+        .trim()
+        .replace(/\s+/g, "")
+        .toUpperCase();
+
+    serie.value = valor;
+
+    if (valor === "") {
+        mostrarMensaje(
+            "error",
+            "Ingresa un VIN antes de continuar."
+        );
+        return;
+    }
+
+    if (!esVINValido(valor)) {
+        mostrarMensaje(
+            "error",
+            "El VIN debe tener 17 caracteres válidos."
+        );
+        return;
+    }
+
     serie.readOnly = true;
-    serieEscaneada = true;
+
+    serieConfirmada = true;
+
     confirmacionSerie.classList.add("oculto");
+
     validarFormulario();
+
 });
 
 btnSerieNo.addEventListener("click", () => {
+
+    serieConfirmada = false;
+
     serie.readOnly = false;
-    serie.select();
+
     serie.focus();
+    serie.select();
 
     confirmacionSerie.classList.add("oculto");
 
@@ -305,6 +384,7 @@ btnSerieNo.addEventListener("click", () => {
     );
 
     validarFormulario();
+
 });
 
 
@@ -325,10 +405,10 @@ async function registrarActivacion() {
         return;
     }
 
-    if (!serieEscaneada) {
-        mostrarMensaje("error", "La serie debe capturarse mediante escaneo.");
-        return;
-    }
+    if (!serieConfirmada) {
+    mostrarMensaje("error", "Confirma la serie antes de registrar la activación.");
+    return;
+}
 
     guardando = true;
     btnRegistrar.disabled = true;
@@ -392,7 +472,7 @@ function limpiarFormulario() {
     agencia.value = "";
     tipoEstructura.value = "";
 
-    serieEscaneada = false;
+    serieConfirmada = false;
 
     serie.readOnly = true;
     confirmacionSerie.classList.add("oculto");
