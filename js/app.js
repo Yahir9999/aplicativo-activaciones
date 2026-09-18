@@ -135,9 +135,11 @@ async function cargarCatalogos() {
     const CACHE_KEY = "activaciones_catalogos";
     const CACHE_TIME = 1000 * 60 * 30; // 30 minutos
 
-    // =====================================================
-    // 1. INTENTAR CARGAR DESDE CACHÉ
-    // =====================================================
+    let cacheValido = false;
+
+    // ==========================================
+    // 1. CARGAR CACHÉ INMEDIATAMENTE
+    // ==========================================
 
     try {
 
@@ -152,22 +154,19 @@ async function cargarCatalogos() {
             const tiempoActual =
                 Date.now();
 
-            const cacheValido =
-                (tiempoActual - cache.timestamp)
-                < CACHE_TIME;
+            cacheValido =
+                cache.data &&
+                cache.timestamp &&
+                (tiempoActual - cache.timestamp) < CACHE_TIME;
 
-
-            if (cacheValido && cache.data) {
+            if (cacheValido) {
 
                 console.log(
                     "⚡ Catálogos cargados desde caché"
                 );
 
-                catalogos =
-                    cache.data;
+                catalogos = cache.data;
 
-
-                // CEDI
                 llenarSelect(
                     cedi,
                     cache.data.cedis,
@@ -175,28 +174,12 @@ async function cargarCatalogos() {
                     "CEDI"
                 );
 
-
-                // MODELOS
                 llenarDatalistModelos(
                     cache.data.modelos
                 );
 
-
-                /*
-                    Importante:
-
-                    El listener del CEDI se registra
-                    solamente una vez.
-                */
-
                 prepararCambioCedi();
 
-                /*
-                    No hacemos return.
-
-                    Continuamos abajo para actualizar
-                    los datos en segundo plano.
-                */
             }
 
         }
@@ -211,69 +194,75 @@ async function cargarCatalogos() {
     }
 
 
-    // =====================================================
-    // 2. ACTUALIZAR DESDE APPS SCRIPT
-    // =====================================================
+    // ==========================================
+    // 2. ACTUALIZAR EN SEGUNDO PLANO
+    // ==========================================
 
     try {
+
+        console.log(
+            "🌐 Actualizando catálogos en segundo plano..."
+        );
 
         const respuesta =
             await fetch(
                 `${URL_SCRIPT}?action=catalogos`
             );
 
+        if (!respuesta.ok) {
+            throw new Error(
+                `Error HTTP ${respuesta.status}`
+            );
+        }
 
         const data =
             await respuesta.json();
 
-
         if (!data.ok) {
 
-            /*
-                Si ya tenemos datos del caché,
-                no mostramos error al usuario.
-            */
-
-            if (!catalogos) {
-
-                mostrarMensaje(
-                    "error",
-                    "No se pudieron cargar los catálogos."
-                );
-
-            }
+            console.warn(
+                "Apps Script no pudo actualizar los catálogos."
+            );
 
             return;
-
         }
 
 
-        // =================================================
-        // 3. GUARDAR NUEVOS DATOS
-        // =================================================
+        // ==========================================
+        // 3. GUARDAR VALORES ACTUALES
+        // ==========================================
 
-        catalogos =
-            data;
+        const cediActual =
+            cedi.value;
 
+        const activadorActual =
+            activador.value;
+
+        const agenciaActual =
+            agencia.value;
+
+        const modeloActual =
+            modelo.value;
+
+
+        // ==========================================
+        // 4. GUARDAR DATOS ACTUALIZADOS
+        // ==========================================
+
+        catalogos = data;
 
         try {
 
             localStorage.setItem(
-
                 CACHE_KEY,
-
                 JSON.stringify({
-
                     timestamp: Date.now(),
-
                     data: data
-
                 })
-
             );
 
             console.log(
-                "✓ Catálogos actualizados y guardados en caché"
+                "✓ Catálogos actualizados en segundo plano"
             );
 
         } catch (error) {
@@ -286,9 +275,9 @@ async function cargarCatalogos() {
         }
 
 
-        // =================================================
-        // 4. ACTUALIZAR INTERFAZ
-        // =================================================
+        // ==========================================
+        // 5. ACTUALIZAR CEDI
+        // ==========================================
 
         llenarSelect(
             cedi,
@@ -297,33 +286,95 @@ async function cargarCatalogos() {
             "CEDI"
         );
 
+        // Restaurar CEDI seleccionado
+        if (
+            cediActual &&
+            data.cedis.some(
+                item => item.CEDI === cediActual
+            )
+        ) {
+            cedi.value = cediActual;
+        }
+
+
+        // ==========================================
+        // 6. ACTUALIZAR MODELOS
+        // ==========================================
 
         llenarDatalistModelos(
             data.modelos
         );
 
+        modelo.value = modeloActual;
+
+
+        // ==========================================
+        // 7. ACTUALIZAR ACTIVADORES
+        // ==========================================
+
+        cargarActivadoresPorCedi();
+
+        if (activadorActual) {
+
+            const activadorExiste =
+                data.usuarios.some(
+                    item =>
+                        item.CEDI === cediActual &&
+                        item.ACTIVADOR === activadorActual
+                );
+
+            if (activadorExiste) {
+                activador.value = activadorActual;
+            }
+
+        }
+
+
+        // ==========================================
+        // 8. ACTUALIZAR AGENCIAS
+        // ==========================================
+
+        cargarAgenciasPorCedi();
+
+        agencia.value = agenciaActual;
+
+
+        // ==========================================
+        // 9. VOLVER A VALIDAR FORMULARIO
+        // ==========================================
+
+        validarFormulario();
 
         prepararCambioCedi();
 
 
-    } catch (error) {
-
-        console.error(
-            "Error al actualizar catálogos:",
-            error
+        console.log(
+            "✓ Catálogos sincronizados correctamente"
         );
 
 
-        /*
-            Si los datos del caché ya estaban cargados,
-            dejamos la aplicación funcionando.
-        */
+    } catch (error) {
 
-        if (!catalogos) {
+        console.warn(
+            "⚠️ No se pudieron actualizar los catálogos:",
+            error
+        );
+
+        // ==========================================
+        // SI EXISTE CACHÉ, LA APP CONTINÚA
+        // ==========================================
+
+        if (cacheValido) {
+
+            console.log(
+                "⚡ Se continúa utilizando el caché."
+            );
+
+        } else {
 
             mostrarMensaje(
                 "error",
-                "Error al cargar catálogos."
+                "No se pudieron cargar los catálogos."
             );
 
         }
