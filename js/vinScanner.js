@@ -1,6 +1,8 @@
 const btnVinOCR = document.getElementById("btnVinOCR");
 
-btnVinOCR.addEventListener("click", leerVINConOCR);
+if (btnVinOCR) {
+    btnVinOCR.addEventListener("click", leerVINConOCR);
+}
 
 async function leerVINConOCR() {
     detenerTodoScanner();

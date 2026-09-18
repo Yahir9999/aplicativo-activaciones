@@ -429,6 +429,12 @@ function limpiarSerie(texto) {
 
 }
 
+function esVINValido(valor) {
+    return /^[A-HJ-NPR-Z0-9]{17}$/.test(
+        String(valor || "").trim().toUpperCase()
+    );
+}
+
 
 // =====================================================
 // MEJORAS DE CÁMARA
