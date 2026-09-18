@@ -131,30 +131,240 @@ function cargarTiposEstructura() {
 // ==============================
 
 async function cargarCatalogos() {
-    try {
-        const respuesta = await fetch(`${URL_SCRIPT}?action=catalogos`);
-        const data = await respuesta.json();
 
-        if (!data.ok) {
-            mostrarMensaje("error", "No se pudieron cargar los catálogos.");
-            return;
+    const CACHE_KEY = "activaciones_catalogos";
+    const CACHE_TIME = 1000 * 60 * 30; // 30 minutos
+
+    // =====================================================
+    // 1. INTENTAR CARGAR DESDE CACHÉ
+    // =====================================================
+
+    try {
+
+        const cacheGuardado =
+            localStorage.getItem(CACHE_KEY);
+
+        if (cacheGuardado) {
+
+            const cache =
+                JSON.parse(cacheGuardado);
+
+            const tiempoActual =
+                Date.now();
+
+            const cacheValido =
+                (tiempoActual - cache.timestamp)
+                < CACHE_TIME;
+
+
+            if (cacheValido && cache.data) {
+
+                console.log(
+                    "⚡ Catálogos cargados desde caché"
+                );
+
+                catalogos =
+                    cache.data;
+
+
+                // CEDI
+                llenarSelect(
+                    cedi,
+                    cache.data.cedis,
+                    "CEDI",
+                    "CEDI"
+                );
+
+
+                // MODELOS
+                llenarDatalistModelos(
+                    cache.data.modelos
+                );
+
+
+                /*
+                    Importante:
+
+                    El listener del CEDI se registra
+                    solamente una vez.
+                */
+
+                prepararCambioCedi();
+
+                /*
+                    No hacemos return.
+
+                    Continuamos abajo para actualizar
+                    los datos en segundo plano.
+                */
+            }
+
         }
 
-        catalogos = data;
+    } catch (error) {
 
-        llenarSelect(cedi, data.cedis, "CEDI", "CEDI");
-        llenarDatalistModelos(data.modelos);
+        console.warn(
+            "No se pudo leer el caché:",
+            error
+        );
 
-        cedi.addEventListener("change", () => {
-            cargarActivadoresPorCedi();
-            cargarAgenciasPorCedi();
-            validarFormulario();
-        });
+    }
+
+
+    // =====================================================
+    // 2. ACTUALIZAR DESDE APPS SCRIPT
+    // =====================================================
+
+    try {
+
+        const respuesta =
+            await fetch(
+                `${URL_SCRIPT}?action=catalogos`
+            );
+
+
+        const data =
+            await respuesta.json();
+
+
+        if (!data.ok) {
+
+            /*
+                Si ya tenemos datos del caché,
+                no mostramos error al usuario.
+            */
+
+            if (!catalogos) {
+
+                mostrarMensaje(
+                    "error",
+                    "No se pudieron cargar los catálogos."
+                );
+
+            }
+
+            return;
+
+        }
+
+
+        // =================================================
+        // 3. GUARDAR NUEVOS DATOS
+        // =================================================
+
+        catalogos =
+            data;
+
+
+        try {
+
+            localStorage.setItem(
+
+                CACHE_KEY,
+
+                JSON.stringify({
+
+                    timestamp: Date.now(),
+
+                    data: data
+
+                })
+
+            );
+
+            console.log(
+                "✓ Catálogos actualizados y guardados en caché"
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "No se pudo guardar el caché:",
+                error
+            );
+
+        }
+
+
+        // =================================================
+        // 4. ACTUALIZAR INTERFAZ
+        // =================================================
+
+        llenarSelect(
+            cedi,
+            data.cedis,
+            "CEDI",
+            "CEDI"
+        );
+
+
+        llenarDatalistModelos(
+            data.modelos
+        );
+
+
+        prepararCambioCedi();
+
 
     } catch (error) {
-        console.error(error);
-        mostrarMensaje("error", "Error al cargar catálogos.");
+
+        console.error(
+            "Error al actualizar catálogos:",
+            error
+        );
+
+
+        /*
+            Si los datos del caché ya estaban cargados,
+            dejamos la aplicación funcionando.
+        */
+
+        if (!catalogos) {
+
+            mostrarMensaje(
+                "error",
+                "Error al cargar catálogos."
+            );
+
+        }
+
     }
+
+}
+
+
+// =====================================================
+// CAMBIO DE CEDI
+// =====================================================
+
+function prepararCambioCedi() {
+
+    /*
+        Evitamos agregar el mismo listener
+        varias veces.
+    */
+
+    if (cedi.dataset.listenerActivo === "true") {
+        return;
+    }
+
+
+    cedi.dataset.listenerActivo = "true";
+
+
+    cedi.addEventListener(
+        "change",
+        () => {
+
+            cargarActivadoresPorCedi();
+
+            cargarAgenciasPorCedi();
+
+            validarFormulario();
+
+        }
+    );
+
 }
 
 function llenarSelect(select, datos, campoValor, campoTexto) {
