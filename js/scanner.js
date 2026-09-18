@@ -51,37 +51,14 @@ async function iniciarScanner() {
                 Buscando código...
             </div>
 
-            <button
-                type="button"
-                id="btnCapturarOCR"
-                class="btn-scan"
-                style="margin-top:10px;">
-
-                <span>LEER VIN POR TEXTO</span>
-
-            </button>
+           
 
         </div>
     `;
 
     const video = document.getElementById("videoScanner");
 
-    const btnOCR = document.getElementById("btnCapturarOCR");
-
-    if (btnOCR) {
-        btnOCR.addEventListener("click", () => {
-
-            if (typeof leerVINConOCR === "function") {
-                leerVINConOCR();
-            } else {
-                mostrarMensaje(
-                    "error",
-                    "El lector OCR no está disponible."
-                );
-            }
-
-        });
-    }
+    
 
     try {
 
