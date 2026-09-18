@@ -386,9 +386,21 @@ function llenarSelect(select, datos, campoValor, campoTexto) {
 
 function activarBuscador(input, lista, opciones) {
 
+    // Guardamos las opciones actuales
+    input._opcionesBuscador = opciones;
+
+    // Si este buscador ya tiene listeners,
+    // solamente actualizamos sus opciones.
+    if (input.dataset.buscadorActivo === "true") {
+        return;
+    }
+
+    input.dataset.buscadorActivo = "true";
+
     input.addEventListener("input", () => {
 
-        const texto = input.value.trim().toUpperCase();
+        const texto =
+            input.value.trim().toUpperCase();
 
         lista.innerHTML = "";
 
@@ -397,11 +409,15 @@ function activarBuscador(input, lista, opciones) {
             return;
         }
 
-        const coincidencias = opciones
-            .filter(opcion =>
-                opcion.toUpperCase().includes(texto)
-            )
-            .slice(0, 10);
+        const opcionesActuales =
+            input._opcionesBuscador || [];
+
+        const coincidencias =
+            opcionesActuales
+                .filter(opcion =>
+                    opcion.toUpperCase().includes(texto)
+                )
+                .slice(0, 10);
 
         if (coincidencias.length === 0) {
             lista.classList.add("oculto");
@@ -410,15 +426,21 @@ function activarBuscador(input, lista, opciones) {
 
         coincidencias.forEach(opcion => {
 
-            const item = document.createElement("div");
+            const item =
+                document.createElement("div");
 
-            item.className = "opcion-buscador";
+            item.className =
+                "opcion-buscador";
+
             item.textContent = opcion;
 
             item.onclick = () => {
+
                 input.value = opcion;
+
                 lista.innerHTML = "";
                 lista.classList.add("oculto");
+
                 validarFormulario();
             };
 
@@ -429,6 +451,7 @@ function activarBuscador(input, lista, opciones) {
         lista.classList.remove("oculto");
 
     });
+
 
     document.addEventListener("click", e => {
 
