@@ -465,7 +465,7 @@ function cargarAgenciasPorCedi() {
     const agenciasOrdenadas = catalogos.agencias
         .filter(item => item.CEDI === cediSeleccionado)
         .map(item => item.AGENCIA)
-        .filter(agencia => agencia)
+        .filter(nombre => nombre)
         .sort((a, b) => a.localeCompare(b, "es"));
 
     activarBuscador(
@@ -473,8 +473,6 @@ function cargarAgenciasPorCedi() {
         listaAgencias,
         agenciasOrdenadas
     );
-
-    validarFormulario();
 }
 
 // funcion para que los  modelos se llenen solos
@@ -598,76 +596,127 @@ btnSerieNo.addEventListener("click", () => {
 });
 
 
-// ==============================
-// REGISTRAR ACTIVACIÓN
-// ==============================
+                // ==============================
+                // REGISTRAR ACTIVACIÓN
+                // ==============================
 
-btnRegistrar.addEventListener("click", registrarActivacion);
+            btnRegistrar.addEventListener("click", registrarActivacion);
 
-async function registrarActivacion() {
-    if (guardando) return;
+            async function registrarActivacion() {
 
-    const litrosValor = Number(litros.value);
+                // Evitar doble registro
+                if (guardando) return;
 
-    if (litrosValor > 9 || litrosValor < 0 || isNaN(litrosValor)) {
-        mostrarMensaje("error", "Los litros de gasolina deben ser de 0 a 9.");
-        validarFormulario();
-        return;
-    }
+                const litrosValor = Number(litros.value);
 
-    if (!serieConfirmada) {
-    mostrarMensaje("error", "Confirma la serie antes de registrar la activación.");
-    return;
-}
+                // Validar litros
+                if (
+                    litrosValor > 9 ||
+                    litrosValor < 0 ||
+                    isNaN(litrosValor)
+                ) {
+                    mostrarMensaje(
+                        "error",
+                        "Los litros de gasolina deben ser de 0 a 9."
+                    );
 
-    guardando = true;
-    btnRegistrar.disabled = true;
-    btnRegistrar.textContent = "Guardando...";
+                    validarFormulario();
+                    return;
+                }
 
-    const datos = {
-        modelo: modelo.value.trim(),
-        serie: serie.value.trim(),
-        to: to.value.trim(),
-        litrosGasolina: litros.value.trim(),
-        fechaActivacion: fecha.value,
-        agencia: agencia.value.trim(),
-        cedi: cedi.value.trim(),
-        tipoEstructura: tipoEstructura.value.trim(),
-        activador: activador.value.trim()
-    };
+                // Validar confirmación de serie
+                if (!serieConfirmada) {
+                    mostrarMensaje(
+                        "error",
+                        "Confirma la serie antes de registrar la activación."
+                    );
+                    return;
+                }
 
-    try {
-        const respuesta = await fetch(
-            `${URL_SCRIPT}?action=registrar`
-            + `&modelo=${encodeURIComponent(datos.modelo)}`
-            + `&serie=${encodeURIComponent(datos.serie)}`
-            + `&to=${encodeURIComponent(datos.to)}`
-            + `&litrosGasolina=${encodeURIComponent(datos.litrosGasolina)}`
-            + `&fechaActivacion=${encodeURIComponent(datos.fechaActivacion)}`
-            + `&agencia=${encodeURIComponent(datos.agencia)}`
-            + `&cedi=${encodeURIComponent(datos.cedi)}`
-            + `&tipoEstructura=${encodeURIComponent(datos.tipoEstructura)}`
-            + `&activador=${encodeURIComponent(datos.activador)}`
-        );
+                guardando = true;
 
-        const data = await respuesta.json();
+                btnRegistrar.disabled = true;
+                btnRegistrar.textContent = "Guardando...";
 
-        if (data.ok) {
-            mostrarMensaje("exito", "Activación guardada correctamente.");
-            limpiarFormulario();
-        } else {
-            mostrarMensaje("error", data.mensaje);
-        }
+                const datos = {
+                    modelo: modelo.value.trim(),
+                    serie: serie.value.trim(),
+                    to: to.value.trim(),
+                    litrosGasolina: litros.value.trim(),
+                    fechaActivacion: fecha.value,
+                    agencia: agencia.value.trim(),
+                    cedi: cedi.value.trim(),
+                    tipoEstructura: tipoEstructura.value.trim(),
+                    activador: activador.value.trim()
+                };
 
-    } catch (error) {
-        console.error(error);
-        mostrarMensaje("error", "Ocurrió un error al guardar la activación, vuelve a intentarlo.");
-    }
+                try {
 
-    guardando = false;
-    btnRegistrar.textContent = "Registrar activación";
-    validarFormulario();
-}
+                    // Crear parámetros de forma más limpia
+                    const parametros = new URLSearchParams({
+                        action: "registrar",
+                        modelo: datos.modelo,
+                        serie: datos.serie,
+                        to: datos.to,
+                        litrosGasolina: datos.litrosGasolina,
+                        fechaActivacion: datos.fechaActivacion,
+                        agencia: datos.agencia,
+                        cedi: datos.cedi,
+                        tipoEstructura: datos.tipoEstructura,
+                        activador: datos.activador
+                    });
+
+                    const respuesta = await fetch(
+                        `${URL_SCRIPT}?${parametros.toString()}`
+                    );
+
+                    if (!respuesta.ok) {
+                        throw new Error(
+                            `Error HTTP ${respuesta.status}`
+                        );
+                    }
+
+                    const data = await respuesta.json();
+
+                    if (data.ok) {
+
+                        mostrarMensaje(
+                            "exito",
+                            "Activación guardada correctamente."
+                        );
+
+                        limpiarFormulario();
+
+                    } else {
+
+                        mostrarMensaje(
+                            "error",
+                            data.mensaje || "No se pudo registrar la activación."
+                        );
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "Error al registrar activación:",
+                        error
+                    );
+
+                    mostrarMensaje(
+                        "error",
+                        "Ocurrió un error al guardar la activación, vuelve a intentarlo."
+                    );
+
+                } finally {
+
+                    // Siempre liberar el bloqueo
+                    guardando = false;
+
+                    btnRegistrar.textContent = "Registrar activación";
+
+                    validarFormulario();
+                }
+            }
 
 
 // ==============================
