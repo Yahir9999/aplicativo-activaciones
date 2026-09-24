@@ -4,6 +4,11 @@ let scannerActivo = false;
 let lecturaProcesada = false;
 let streamActivo = null;
 
+
+// =====================================================
+// ELEMENTOS
+// =====================================================
+
 const btnScanner = document.getElementById("btnScanner");
 const reader = document.getElementById("reader");
 
@@ -51,14 +56,11 @@ async function iniciarScanner() {
                 Buscando código...
             </div>
 
-           
-
         </div>
     `;
 
     const video = document.getElementById("videoScanner");
 
-    
 
     try {
 
@@ -77,7 +79,9 @@ async function iniciarScanner() {
             "error",
             "No se pudo abrir la cámara."
         );
+
     }
+
 }
 
 
@@ -95,6 +99,7 @@ async function iniciarScannerZXing(video) {
         );
 
         return;
+
     }
 
 
@@ -121,16 +126,6 @@ async function iniciarScannerZXing(video) {
         ZXingBrowser.DecodeHintType;
 
 
-    /*
-        IMPORTANTE:
-
-        Antes solo teníamos CODE_128.
-
-        Ahora permitimos varios formatos.
-        CODE_39 es especialmente importante
-        para tus etiquetas.
-    */
-
     const formatos = [
 
         BarcodeFormat.CODE_39,
@@ -156,6 +151,10 @@ async function iniciarScannerZXing(video) {
     }
 
 
+    // -------------------------------------------------
+    // MODO DE DETECCIÓN
+    // -------------------------------------------------
+
     if (DecodeHintType.TRY_HARDER) {
 
         hints.set(
@@ -174,7 +173,7 @@ async function iniciarScannerZXing(video) {
         new ZXingBrowser.BrowserMultiFormatReader(
             hints,
             {
-                delayBetweenScanAttempts: 80,
+                delayBetweenScanAttempts: 100,
                 delayBetweenScanSuccess: 500
             }
         );
@@ -192,14 +191,23 @@ async function iniciarScannerZXing(video) {
                 ideal: "environment"
             },
 
+            /*
+             * Dejamos que el teléfono elija
+             * una resolución adecuada.
+             *
+             * 1280x720 es suficiente para
+             * las etiquetas y evita exigir
+             * 1080p a todos los dispositivos.
+             */
+
             width: {
-                ideal: 1920,
-                min: 1280
+                ideal: 1280,
+                min: 640
             },
 
             height: {
-                ideal: 1080,
-                min: 720
+                ideal: 720,
+                min: 480
             },
 
             frameRate: {
@@ -225,7 +233,9 @@ async function iniciarScannerZXing(video) {
                     !scannerActivo ||
                     lecturaProcesada
                 ) {
+
                     return;
+
                 }
 
 
@@ -251,10 +261,9 @@ async function iniciarScannerZXing(video) {
                     );
 
 
-                    /*
-                        Primero comprobamos que tenga
-                        estructura de VIN.
-                    */
+                    // -------------------------------------------------
+                    // EXTRAER VIN
+                    // -------------------------------------------------
 
                     const vin =
                         extraerVINDesdeCodigo(
@@ -273,11 +282,14 @@ async function iniciarScannerZXing(video) {
 
 
                         if (ctrl) {
+
                             ctrl.stop();
+
                         }
 
 
                         await codigoLeido(vin);
+
 
                     } else {
 
@@ -290,15 +302,40 @@ async function iniciarScannerZXing(video) {
                 }
 
             }
+
         );
 
 
-    // Esperamos a que la cámara esté lista
-    setTimeout(() => {
+    // -------------------------------------------------
+    // ESPERAR A QUE EL VIDEO ESTÉ LISTO
+    // -------------------------------------------------
 
-        aplicarMejorasCamara(video);
+    const aplicarCuandoEsteListo = async () => {
 
-    }, 800);
+        if (!scannerActivo) {
+            return;
+        }
+
+        if (
+            video.readyState >= 2 &&
+            video.videoWidth > 0
+        ) {
+
+            await aplicarMejorasCamara(video);
+
+            return;
+
+        }
+
+        requestAnimationFrame(
+            aplicarCuandoEsteListo
+        );
+
+    };
+
+
+    aplicarCuandoEsteListo();
+
 }
 
 
@@ -313,20 +350,15 @@ function extraerVINDesdeCodigo(texto) {
     }
 
 
-    /*
-        Caso ideal:
-        ZXing devuelve directamente el VIN.
-    */
+    // -------------------------------------------------
+    // CASO IDEAL:
+    // ZXing devuelve directamente el VIN
+    // -------------------------------------------------
 
     if (
         /^[A-Z0-9]{17}$/.test(texto) &&
         texto.startsWith("3MU")
     ) {
-
-        /*
-            El código de barras ya viene correcto.
-            Lo validamos matemáticamente.
-        */
 
         if (
             typeof validarVINCompleto === "function"
@@ -335,8 +367,11 @@ function extraerVINDesdeCodigo(texto) {
             const valido =
                 validarVINCompleto(texto);
 
+
             if (valido) {
+
                 return texto;
+
             }
 
         } else {
@@ -345,7 +380,9 @@ function extraerVINDesdeCodigo(texto) {
                 typeof validarDigitoVIN === "function" &&
                 validarDigitoVIN(texto)
             ) {
+
                 return texto;
+
             }
 
         }
@@ -353,9 +390,9 @@ function extraerVINDesdeCodigo(texto) {
     }
 
 
-    /*
-        Buscar VIN dentro del resultado.
-    */
+    // -------------------------------------------------
+    // BUSCAR VIN DENTRO DEL RESULTADO
+    // -------------------------------------------------
 
     const coincidencia =
         texto.match(
@@ -382,6 +419,7 @@ function extraerVINDesdeCodigo(texto) {
 
 
     return null;
+
 }
 
 
@@ -406,10 +444,15 @@ function limpiarSerie(texto) {
 
 }
 
+
 function esVINValido(valor) {
+
     return /^[A-HJ-NPR-Z0-9]{17}$/.test(
-        String(valor || "").trim().toUpperCase()
+        String(valor || "")
+            .trim()
+            .toUpperCase()
     );
+
 }
 
 
@@ -424,6 +467,7 @@ async function aplicarMejorasCamara(video) {
         const stream =
             video.srcObject;
 
+
         if (!stream) {
             return;
         }
@@ -434,6 +478,7 @@ async function aplicarMejorasCamara(video) {
 
         const track =
             stream.getVideoTracks()[0];
+
 
         if (!track) {
             return;
@@ -468,7 +513,7 @@ async function aplicarMejorasCamara(video) {
 
 
         // -------------------------------------------------
-        // EXPOSICIÓN
+        // EXPOSICIÓN CONTINUA
         // -------------------------------------------------
 
         if (
@@ -486,7 +531,7 @@ async function aplicarMejorasCamara(video) {
 
 
         // -------------------------------------------------
-        // ZOOM
+        // ZOOM MODERADO
         // -------------------------------------------------
 
         if (capabilities.zoom) {
@@ -499,11 +544,10 @@ async function aplicarMejorasCamara(video) {
 
 
             /*
-                No forzamos demasiado zoom.
-
-                Un zoom excesivo puede hacer que
-                desaparezcan partes del código.
-            */
+             * No usamos demasiado zoom.
+             * Queremos mantener completo
+             * el código dentro de la imagen.
+             */
 
             const zoomIdeal =
                 Math.min(
@@ -522,6 +566,10 @@ async function aplicarMejorasCamara(video) {
 
         }
 
+
+        // -------------------------------------------------
+        // APLICAR CONFIGURACIÓN
+        // -------------------------------------------------
 
         if (advanced.length > 0) {
 
@@ -556,7 +604,9 @@ function actualizarEstadoScanner(texto) {
 
 
     if (estado) {
+
         estado.textContent = texto;
+
     }
 
 }
@@ -573,14 +623,14 @@ async function codigoLeido(serieLimpia) {
         serie.value =
             serieLimpia;
 
+
         serie.readOnly =
             true;
 
 
-        /*
-            Mantener compatibilidad
-            con tu app actual.
-        */
+        // -------------------------------------------------
+        // COMPATIBILIDAD CON APP ACTUAL
+        // -------------------------------------------------
 
         if (
             typeof serieConfirmada !== "undefined"
@@ -601,6 +651,10 @@ async function codigoLeido(serieLimpia) {
 
         }
 
+
+        // -------------------------------------------------
+        // VIBRACIÓN
+        // -------------------------------------------------
 
         if (navigator.vibrate) {
 
@@ -631,6 +685,7 @@ async function codigoLeido(serieLimpia) {
             error
         );
 
+
         lecturaProcesada =
             false;
 
@@ -647,6 +702,10 @@ function detenerScanner() {
 
     try {
 
+        // -------------------------------------------------
+        // DETENER ZXING
+        // -------------------------------------------------
+
         if (controls) {
 
             controls.stop();
@@ -655,6 +714,10 @@ function detenerScanner() {
 
         }
 
+
+        // -------------------------------------------------
+        // DETENER STREAM
+        // -------------------------------------------------
 
         if (streamActivo) {
 
@@ -669,6 +732,10 @@ function detenerScanner() {
         }
 
 
+        // -------------------------------------------------
+        // RESET ZXING
+        // -------------------------------------------------
+
         if (
             codeReader &&
             codeReader.reset
@@ -681,6 +748,10 @@ function detenerScanner() {
 
         codeReader = null;
 
+
+        // -------------------------------------------------
+        // LIMPIAR INTERFAZ
+        // -------------------------------------------------
 
         reader.innerHTML = "";
 
