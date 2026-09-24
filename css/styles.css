@@ -764,3 +764,15 @@ body {
     padding: 0 16px;
     box-sizing: border-box;
 }
+
+#historialFechaInicio,
+#historialFechaFin {
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 400;
+    color: #222;
+    height: 64px;
+    padding: 0 16px;
+    box-sizing: border-box;
+    width: 100%;
+}
