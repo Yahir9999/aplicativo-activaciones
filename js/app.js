@@ -1120,124 +1120,395 @@ const btnVolverFormulario = document.getElementById("btnVolverFormulario");
 
 const historialCedi = document.getElementById("historialCedi");
 const historialTecnico = document.getElementById("historialTecnico");
-const historialPeriodo = document.getElementById("historialPeriodo");
+const historialFechaInicio = document.getElementById("historialFechaInicio");
+const historialFechaFin = document.getElementById("historialFechaFin");
 const btnBuscarHistorial = document.getElementById("btnBuscarHistorial");
 const resultadoHistorial = document.getElementById("resultadoHistorial");
 
+
+// ==============================
+// MENÚ
+// ==============================
+
 btnMenu.addEventListener("click", () => {
+
     menuOpciones.style.display =
-        menuOpciones.style.display === "block" ? "none" : "block";
+        menuOpciones.style.display === "block"
+            ? "none"
+            : "block";
+
 });
 
+
+// ==============================
+// ABRIR HISTORIAL
+// ==============================
+
 btnHistorial.addEventListener("click", () => {
+
     menuOpciones.style.display = "none";
 
     pantallaFormulario.classList.add("oculto");
     pantallaHistorial.classList.remove("oculto");
 
     cargarFiltrosHistorial();
+
 });
 
+
+// ==============================
+// VOLVER
+// ==============================
+
 btnVolverFormulario.addEventListener("click", () => {
+
     pantallaHistorial.classList.add("oculto");
     pantallaFormulario.classList.remove("oculto");
 
     resultadoHistorial.innerHTML = "";
+
 });
+
+
+// ==============================
+// CAMBIO DE CEDI
+// ==============================
 
 historialCedi.addEventListener("change", () => {
+
     cargarTecnicosHistorial();
+
     resultadoHistorial.innerHTML = "";
+
 });
 
-btnBuscarHistorial.addEventListener("click", buscarHistorial);
+
+// ==============================
+// BUSCAR
+// ==============================
+
+btnBuscarHistorial.addEventListener(
+    "click",
+    buscarHistorial
+);
+
+
+// ==============================
+// CARGAR FILTROS
+// ==============================
 
 function cargarFiltrosHistorial() {
-    if (!catalogos.cedis || !catalogos.usuarios) return;
 
-    llenarSelect(historialCedi, catalogos.cedis, "CEDI", "CEDI");
-
-    historialCedi.value = cedi.value || "";
-    cargarTecnicosHistorial();
-
-    historialTecnico.value = activador.value || "";
-}
-
-function cargarTecnicosHistorial() {
-    const cediSeleccionado = historialCedi.value;
-
-    const tecnicos = catalogos.usuarios.filter(item =>
-        item.CEDI === cediSeleccionado
-    );
-
-    llenarSelect(historialTecnico, tecnicos, "ACTIVADOR", "ACTIVADOR");
-}
-
-async function buscarHistorial() {
-    const cediValor = historialCedi.value;
-    const tecnicoValor = historialTecnico.value;
-    const periodoValor = historialPeriodo.value;
-
-    if (!cediValor || !tecnicoValor) {
-        resultadoHistorial.innerHTML = `
-            <p>Selecciona CEDI y técnico.</p>
-        `;
+    if (
+        !catalogos.cedis ||
+        !catalogos.usuarios
+    ) {
         return;
     }
 
-    resultadoHistorial.innerHTML = `<p>Buscando historial...</p>`;
+    llenarSelect(
+        historialCedi,
+        catalogos.cedis,
+        "CEDI",
+        "CEDI"
+    );
 
-    try {
-        const respuesta = await fetch(
-            `${URL_SCRIPT}?action=historial`
-            + `&cedi=${encodeURIComponent(cediValor)}`
-            + `&activador=${encodeURIComponent(tecnicoValor)}`
-            + `&periodo=${encodeURIComponent(periodoValor)}`
+    historialCedi.value =
+        cedi.value || "";
+
+    cargarTecnicosHistorial();
+
+    // Por defecto: TODOS
+    historialTecnico.value = "";
+
+    // ==============================
+    // FECHAS DEL MES ACTUAL
+    // ==============================
+
+    const hoy = new Date();
+
+    const primerDia =
+        new Date(
+            hoy.getFullYear(),
+            hoy.getMonth(),
+            1
         );
 
-        const data = await respuesta.json();
+    const ultimoDia =
+        new Date(
+            hoy.getFullYear(),
+            hoy.getMonth() + 1,
+            0
+        );
 
-        if (!data.ok || !data.registros || data.registros.length === 0) {
+    function formatoFecha(fecha) {
+
+        const yyyy =
+            fecha.getFullYear();
+
+        const mm =
+            String(
+                fecha.getMonth() + 1
+            ).padStart(2, "0");
+
+        const dd =
+            String(
+                fecha.getDate()
+            ).padStart(2, "0");
+
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    historialFechaInicio.value =
+        formatoFecha(primerDia);
+
+    historialFechaFin.value =
+        formatoFecha(ultimoDia);
+
+}
+
+
+// ==============================
+// CARGAR ACTIVADORES
+// ==============================
+
+function cargarTecnicosHistorial() {
+
+    const cediSeleccionado =
+        historialCedi.value;
+
+    const tecnicos =
+        catalogos.usuarios.filter(item =>
+            item.CEDI === cediSeleccionado
+        );
+
+    historialTecnico.innerHTML = `
+        <option value="">Todos</option>
+    `;
+
+    tecnicos.forEach(item => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            item.ACTIVADOR;
+
+        option.textContent =
+            item.ACTIVADOR;
+
+        historialTecnico.appendChild(option);
+
+    });
+
+}
+
+
+// ==============================
+// BUSCAR HISTORIAL
+// ==============================
+
+async function buscarHistorial() {
+
+    const cediValor =
+        historialCedi.value;
+
+    const tecnicoValor =
+        historialTecnico.value;
+
+    const fechaInicioValor =
+        historialFechaInicio.value;
+
+    const fechaFinValor =
+        historialFechaFin.value;
+
+
+    // ==============================
+    // VALIDAR CEDI
+    // ==============================
+
+    if (!cediValor) {
+
+        resultadoHistorial.innerHTML = `
+            <p>Selecciona un CEDI.</p>
+        `;
+
+        return;
+    }
+
+
+    // ==============================
+    // VALIDAR FECHAS
+    // ==============================
+
+    if (
+        !fechaInicioValor ||
+        !fechaFinValor
+    ) {
+
+        resultadoHistorial.innerHTML = `
+            <p>Selecciona la fecha inicial y la fecha final.</p>
+        `;
+
+        return;
+    }
+
+
+    if (
+        fechaInicioValor >
+        fechaFinValor
+    ) {
+
+        resultadoHistorial.innerHTML = `
+            <p>La fecha inicial no puede ser mayor que la fecha final.</p>
+        `;
+
+        return;
+    }
+
+
+    resultadoHistorial.innerHTML = `
+        <p>Buscando historial...</p>
+    `;
+
+
+    try {
+
+        // ==============================
+        // CONSULTAR APPS SCRIPT
+        // ==============================
+
+        const respuesta =
+            await fetch(
+                `${URL_SCRIPT}?action=historial`
+                + `&cedi=${encodeURIComponent(cediValor)}`
+                + `&activador=${encodeURIComponent(tecnicoValor)}`
+                + `&fechaInicio=${encodeURIComponent(fechaInicioValor)}`
+                + `&fechaFin=${encodeURIComponent(fechaFinValor)}`
+            );
+
+
+        if (!respuesta.ok) {
+
+            throw new Error(
+                `Error HTTP ${respuesta.status}`
+            );
+
+        }
+
+
+        const data =
+            await respuesta.json();
+
+
+        console.log(
+            "📥 Historial:",
+            data
+        );
+
+
+        // ==============================
+        // ERROR APPS SCRIPT
+        // ==============================
+
+        if (!data.ok) {
+
             resultadoHistorial.innerHTML = `
-                <div class="total-historial">
-                    Total activadas: 0
-                </div>
+                <p>${data.mensaje || "No se pudo consultar el historial."}</p>
             `;
+
             return;
         }
 
+
+        // ==============================
+        // SIN RESULTADOS
+        // ==============================
+
+        if (
+            !data.registros ||
+            data.registros.length === 0
+        ) {
+
+            resultadoHistorial.innerHTML = `
+
+                <div class="total-historial">
+                    Total activaciones: 0
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        // ==============================
+        // TABLA
+        // ==============================
+
         resultadoHistorial.innerHTML = `
-    <div class="tabla-historial">
-        <table>
-            <thead>
-                <tr>
-                    <th>Serie</th>
-                    <th>Modelo</th>
-                    <th>Fecha</th>
-                </tr>
-            </thead>
 
-            <tbody>
-                ${data.registros.map(item => `
-                    <tr>
-                        <td>${item.serie}</td>
-                        <td>${item.modelo}</td>
-                        <td>${item.fecha}</td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
-    </div>
+            <div class="tabla-historial">
 
-    <div class="total-historial">
-        Total activadas: ${data.total}
-    </div>
-`;
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>FECHA</th>
+                            <th>MODELO</th>
+                            <th>NÚMERO DE SERIE</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${data.registros.map(item => `
+
+                            <tr>
+
+                                <td>${item.fecha}</td>
+
+                                <td>${item.modelo}</td>
+
+                                <td>${item.serie}</td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <div class="total-historial">
+
+                Total activaciones:
+                ${data.total}
+
+            </div>
+
+        `;
+
 
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "Error al consultar historial:",
+            error
+        );
+
+
         resultadoHistorial.innerHTML = `
             <p>Error al consultar historial.</p>
         `;
+
     }
+
 }

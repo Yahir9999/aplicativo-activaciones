@@ -193,47 +193,103 @@
 
     </main>
 
-            <!-- INICIO HISTORIAL -->
+        <!-- INICIO HISTORIAL -->
         <section id="pantallaHistorial" class="pantalla-historial oculto">
 
             <div class="historial-header">
-                <button type="button" id="btnVolverFormulario" class="btn-volver">
+
+                <button
+                    type="button"
+                    id="btnVolverFormulario"
+                    class="btn-volver">
+
                     ←
+
                 </button>
 
                 <h2>Historial</h2>
+
             </div>
+
 
             <div class="card historial">
 
+                <!-- CEDI -->
                 <div class="campo">
-                    <label>CEDI</label>
+
+                    <label for="historialCedi">
+                        CEDI
+                    </label>
+
                     <select id="historialCedi"></select>
+
                 </div>
 
-                <div class="campo">
-                    <label>Técnico</label>
-                    <select id="historialTecnico"></select>
-                </div>
 
+                <!-- ACTIVADOR -->
                 <div class="campo">
-                    <label>Periodo</label>
-                    <select id="historialPeriodo">
-                        <option value="dia">Hoy</option>
-                        <option value="semana">Semana actual</option>
+
+                    <label for="historialTecnico">
+                        Activador
+                    </label>
+
+                    <select id="historialTecnico">
+
+                        <option value="">
+                            Todos
+                        </option>
+
                     </select>
+
                 </div>
 
-                <button id="btnBuscarHistorial" class="btn" type="button">
+
+                <!-- FECHA INICIAL -->
+                <div class="campo">
+
+                    <label for="historialFechaInicio">
+                        Fecha inicial
+                    </label>
+
+                    <input
+                        type="date"
+                        id="historialFechaInicio">
+
+                </div>
+
+
+                <!-- FECHA FINAL -->
+                <div class="campo">
+
+                    <label for="historialFechaFin">
+                        Fecha final
+                    </label>
+
+                    <input
+                        type="date"
+                        id="historialFechaFin">
+
+                </div>
+
+
+                <!-- BUSCAR -->
+                <button
+                    id="btnBuscarHistorial"
+                    class="btn"
+                    type="button">
+
                     Buscar historial
+
                 </button>
 
+
+                <!-- RESULTADOS -->
                 <div id="resultadoHistorial"></div>
 
             </div>
 
         </section>
-        <!-- FIN HISTORIAL de activaciones -->
+        <!-- FIN HISTORIAL de activaciones -->       
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
