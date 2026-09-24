@@ -749,3 +749,18 @@ body {
 #btnEscribirSerie:active {
     transform: scale(0.98);
 }
+
+/* ==============================
+   FECHAS - HISTORIAL
+   ============================== */
+
+#historialFechaInicio,
+#historialFechaFin {
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 400;
+    color: #222;
+    height: 64px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
