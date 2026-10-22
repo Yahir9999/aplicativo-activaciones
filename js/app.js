@@ -1106,86 +1106,143 @@ function mostrarMensaje(tipo, texto) {
     }, 3500);
 }
 
-// ==============================
-// HISTORIAL DE ACTIVACIONES
-// ==============================
 
-const pantallaFormulario = document.getElementById("pantallaFormulario");
-const pantallaHistorial = document.getElementById("pantallaHistorial");
+
+const pantallaAcceso =
+    document.getElementById("pantallaAcceso");
+
+const btnAccesoActivador =
+    document.getElementById("btnAccesoActivador");
+
+const btnAccesoJefe =
+    document.getElementById("btnAccesoJefe");
+
+const pantallaFormulario =
+    document.getElementById("pantallaFormulario");
+
+const pantallaHistorial =
+    document.getElementById("pantallaHistorial");
+
+
 
 const btnMenu = document.getElementById("btnMenu");
 const menuOpciones = document.getElementById("menuOpciones");
 const btnHistorial = document.getElementById("btnHistorial");
 const btnVolverFormulario = document.getElementById("btnVolverFormulario");
 
-const historialCedi = document.getElementById("historialCedi");
+
+const filtrosHistorialActivador = document.getElementById("filtrosHistorialActivador");
+const filtrosHistorialJefe = document.getElementById("filtrosHistorialJefe");
+
+const historialCediActivador = document.getElementById("historialCediActivador");
+const historialTecnicoActivador = document.getElementById("historialTecnicoActivador");
+const historialFechaInicioActivador = document.getElementById("historialFechaInicioActivador");
+const historialFechaFinActivador = document.getElementById("historialFechaFinActivador");
+const btnBuscarHistorialActivador = document.getElementById("btnBuscarHistorialActivador");
+const resultadoHistorialActivador = document.getElementById("resultadoHistorialActivador");
+
 const historialTecnico = document.getElementById("historialTecnico");
 const historialFechaInicio = document.getElementById("historialFechaInicio");
 const historialFechaFin = document.getElementById("historialFechaFin");
 const btnBuscarHistorial = document.getElementById("btnBuscarHistorial");
 const resultadoHistorial = document.getElementById("resultadoHistorial");
 
+const tituloHistorial = document.getElementById("tituloHistorial");
 
-// ==============================
+let rolHistorialActual = "";
+let cediJefeActual = "";
+
+
+ // ==========================================
+ // ACCESO PRINCIPAL
+ // ==========================================
+
+btnAccesoActivador.addEventListener("click", () => {
+    rolHistorialActual = "ACTIVADOR";
+
+    pantallaAcceso.classList.add("oculto");
+    pantallaHistorial.classList.add("oculto");
+    pantallaFormulario.classList.remove("oculto");
+});
+
+btnAccesoJefe.addEventListener("click", () => {
+    rolHistorialActual = "JEFE";
+
+    pantallaAcceso.classList.add("oculto");
+    pantallaFormulario.classList.add("oculto");
+    pantallaHistorial.classList.remove("oculto");
+
+    filtrosHistorialActivador.classList.add("oculto");
+    filtrosHistorialJefe.classList.remove("oculto");
+
+    tituloHistorial.textContent = "Historial de activaciones";
+
+    prepararHistorialJefe();
+});
+
+// ==========================================
 // MENÚ
-// ==============================
+// ==========================================
 
 btnMenu.addEventListener("click", () => {
-
     menuOpciones.style.display =
         menuOpciones.style.display === "block"
             ? "none"
             : "block";
-
 });
 
-
-// ==============================
-// ABRIR HISTORIAL
-// ==============================
+// ==========================================
+// ABRIR HISTORIAL DEL ACTIVADOR
+// ==========================================
 
 btnHistorial.addEventListener("click", () => {
+    rolHistorialActual = "ACTIVADOR";
 
     menuOpciones.style.display = "none";
-
     pantallaFormulario.classList.add("oculto");
     pantallaHistorial.classList.remove("oculto");
 
-    cargarFiltrosHistorial();
+    filtrosHistorialJefe.classList.add("oculto");
+    filtrosHistorialActivador.classList.remove("oculto");
 
+    tituloHistorial.textContent = "Mi historial de activaciones";
+
+    prepararHistorialActivador();
 });
 
-
-// ==============================
+// ==========================================
 // VOLVER
-// ==============================
+// ==========================================
 
 btnVolverFormulario.addEventListener("click", () => {
-
     pantallaHistorial.classList.add("oculto");
-    pantallaFormulario.classList.remove("oculto");
-
     resultadoHistorial.innerHTML = "";
+    resultadoHistorialActivador.innerHTML = "";
 
+    if (rolHistorialActual === "JEFE") {
+        pantallaAcceso.classList.remove("oculto");
+    } else {
+        pantallaFormulario.classList.remove("oculto");
+    }
 });
 
+// ==========================================
+// CAMBIO DE CEDI DEL ACTIVADOR
+// ==========================================
 
-// ==============================
-// CAMBIO DE CEDI
-// ==============================
-
-historialCedi.addEventListener("change", () => {
-
+historialCediActivador.addEventListener("change", () => {
     cargarTecnicosHistorial();
-
-    resultadoHistorial.innerHTML = "";
-
+    resultadoHistorialActivador.innerHTML = "";
 });
 
+// ==========================================
+// BOTONES DE BÚSQUEDA
+// ==========================================
 
-// ==============================
-// BUSCAR
-// ==============================
+btnBuscarHistorialActivador.addEventListener(
+    "click",
+    buscarHistorialActivador
+);
 
 btnBuscarHistorial.addEventListener(
     "click",
@@ -1193,322 +1250,356 @@ btnBuscarHistorial.addEventListener(
 );
 
 
-// ==============================
-// CARGAR FILTROS
-// ==============================
 
-function cargarFiltrosHistorial() {
+ // ==========================================
+ // CARGAR FILTROS DEL ACTIVADOR
+ // ==========================================
 
-    if (
-        !catalogos.cedis ||
-        !catalogos.usuarios
-    ) {
-        return;
-    }
+function prepararHistorialActivador() {
+    if (!catalogos.cedis || !catalogos.usuarios) return;
+
+    filtrosHistorialActivador.classList.remove("oculto");
+    filtrosHistorialJefe.classList.add("oculto");
 
     llenarSelect(
-        historialCedi,
+        historialCediActivador,
         catalogos.cedis,
         "CEDI",
         "CEDI"
     );
 
-    historialCedi.value =
-        cedi.value || "";
+    historialCediActivador.value = cedi.value || "";
+
+    if (!historialCediActivador.value) {
+        historialCediActivador.value = "";
+    }
 
     cargarTecnicosHistorial();
 
-    // Por defecto: TODOS
+    historialTecnicoActivador.value = "";
+
+    establecerFechasHistorial(
+        historialFechaInicioActivador,
+        historialFechaFinActivador
+    );
+
+    resultadoHistorialActivador.innerHTML = "";
+}
+
+// ==========================================
+// CARGAR FILTROS DEL JEFE
+// ==========================================
+
+function prepararHistorialJefe() {
+    if (!catalogos.usuarios) return;
+
+    filtrosHistorialJefe.classList.remove("oculto");
+    filtrosHistorialActivador.classList.add("oculto");
+
+    const jefe = catalogos.usuarios.find(item =>
+        String(item.ROL || "")
+            .trim()
+            .toUpperCase() === "JEFE DE ACTIVACIONES"
+    );
+
+    if (!jefe || !jefe.CEDI) {
+        resultadoHistorial.innerHTML =
+            "<p>No se encontró el CEDI asignado al jefe de activaciones.</p>";
+        return;
+    }
+
+    cediJefeActual = String(jefe.CEDI).trim();
+
     historialTecnico.value = "";
 
-    // ==============================
-    // FECHAS DEL MES ACTUAL
-    // ==============================
+    establecerFechasHistorial(
+        historialFechaInicio,
+        historialFechaFin
+    );
 
+    resultadoHistorial.innerHTML = "";
+}
+
+// ==========================================
+// ESTABLECER FECHAS DEL MES ACTUAL
+// ==========================================
+
+function establecerFechasHistorial(inputInicio, inputFin) {
     const hoy = new Date();
 
-    const primerDia =
-        new Date(
-            hoy.getFullYear(),
-            hoy.getMonth(),
-            1
-        );
+    const primerDia = new Date(
+        hoy.getFullYear(),
+        hoy.getMonth(),
+        1
+    );
 
-    const ultimoDia =
-        new Date(
-            hoy.getFullYear(),
-            hoy.getMonth() + 1,
-            0
-        );
+    const ultimoDia = new Date(
+        hoy.getFullYear(),
+        hoy.getMonth() + 1,
+        0
+    );
 
-    function formatoFecha(fecha) {
-
-        const yyyy =
-            fecha.getFullYear();
-
-        const mm =
-            String(
-                fecha.getMonth() + 1
-            ).padStart(2, "0");
-
-        const dd =
-            String(
-                fecha.getDate()
-            ).padStart(2, "0");
+    function formatoFechaHistorial(fecha) {
+        const yyyy = fecha.getFullYear();
+        const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+        const dd = String(fecha.getDate()).padStart(2, "0");
 
         return `${yyyy}-${mm}-${dd}`;
     }
 
-    historialFechaInicio.value =
-        formatoFecha(primerDia);
-
-    historialFechaFin.value =
-        formatoFecha(ultimoDia);
-
+    inputInicio.value = formatoFechaHistorial(primerDia);
+    inputFin.value = formatoFechaHistorial(ultimoDia);
 }
 
-
-// ==============================
-// CARGAR ACTIVADORES
-// ==============================
+// ==========================================
+// CARGAR ACTIVADORES POR CEDI
+// ==========================================
 
 function cargarTecnicosHistorial() {
+    if (!catalogos.usuarios) return;
 
-    const cediSeleccionado =
-        historialCedi.value;
+    const cediSeleccionado = historialCediActivador.value;
 
-    const tecnicos =
-        catalogos.usuarios.filter(item =>
-            item.CEDI === cediSeleccionado
-        );
+    const tecnicos = catalogos.usuarios.filter(item =>
+        item.CEDI === cediSeleccionado &&
+        String(item.ROL || "").trim().toUpperCase() !==
+            "JEFE DE ACTIVACIONES"
+    );
 
-    historialTecnico.innerHTML = `
-        <option value="">Todos</option>
-    `;
+    llenarSelect(
+        historialTecnicoActivador,
+        tecnicos,
+        "ACTIVADOR",
+        "ACTIVADOR"
+    );
 
-    tecnicos.forEach(item => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            item.ACTIVADOR;
-
-        option.textContent =
-            item.ACTIVADOR;
-
-        historialTecnico.appendChild(option);
-
-    });
-
+    historialTecnicoActivador.options[0].textContent =
+        "Todos los activadores";
 }
 
 
-// ==============================
-// BUSCAR HISTORIAL
-// ==============================
+
+ // ==========================================
+ // BUSCAR HISTORIAL DEL ACTIVADOR
+ // ==========================================
+
+async function buscarHistorialActivador() {
+    await consultarHistorial(
+        historialCediActivador.value,
+        historialTecnicoActivador.value,
+        historialFechaInicioActivador.value,
+        historialFechaFinActivador.value,
+        resultadoHistorialActivador,
+        false
+    );
+}
+
+// ==========================================
+// BUSCAR HISTORIAL DEL JEFE
+// ==========================================
 
 async function buscarHistorial() {
+    if (!cediJefeActual) {
+        resultadoHistorial.innerHTML =
+            "<p>No se encontró el CEDI asignado al jefe.</p>";
+        return;
+    }
 
-    const cediValor =
-        historialCedi.value;
+    await consultarHistorial(
+        cediJefeActual,
+        historialTecnico.value.trim(),
+        historialFechaInicio.value,
+        historialFechaFin.value,
+        resultadoHistorial,
+        true
+    );
+}
 
-    const tecnicoValor =
-        historialTecnico.value;
+// ==========================================
+// CONSULTAR Y MOSTRAR HISTORIAL
+// ==========================================
 
-    const fechaInicioValor =
-        historialFechaInicio.value;
-
-    const fechaFinValor =
-        historialFechaFin.value;
-
-
-    // ==============================
-    // VALIDAR CEDI
-    // ==============================
-
+async function consultarHistorial(
+    cediValor,
+    tecnicoValor,
+    fechaInicioValor,
+    fechaFinValor,
+    contenedor,
+    mostrarEstado
+) {
     if (!cediValor) {
-
-        resultadoHistorial.innerHTML = `
-            <p>Selecciona un CEDI.</p>
-        `;
-
+        contenedor.innerHTML = "<p>Selecciona un CEDI.</p>";
         return;
     }
 
-
-    // ==============================
-    // VALIDAR FECHAS
-    // ==============================
-
-    if (
-        !fechaInicioValor ||
-        !fechaFinValor
-    ) {
-
-        resultadoHistorial.innerHTML = `
-            <p>Selecciona la fecha inicial y la fecha final.</p>
-        `;
-
+    if (!fechaInicioValor || !fechaFinValor) {
+        contenedor.innerHTML =
+            "<p>Selecciona la fecha inicial y la fecha final.</p>";
         return;
     }
 
-
-    if (
-        fechaInicioValor >
-        fechaFinValor
-    ) {
-
-        resultadoHistorial.innerHTML = `
-            <p>La fecha inicial no puede ser mayor que la fecha final.</p>
-        `;
-
+    if (fechaInicioValor > fechaFinValor) {
+        contenedor.innerHTML =
+            "<p>La fecha inicial no puede ser mayor que la fecha final.</p>";
         return;
     }
 
-
-    resultadoHistorial.innerHTML = `
-        <p>Buscando historial...</p>
-    `;
-
+    contenedor.innerHTML = "<p>Buscando historial...</p>";
 
     try {
+        const url =
+            `${URL_SCRIPT}?action=historial` +
+            `&cedi=${encodeURIComponent(cediValor)}` +
+            `&activador=${encodeURIComponent(tecnicoValor)}` +
+            `&fechaInicio=${encodeURIComponent(fechaInicioValor)}` +
+            `&fechaFin=${encodeURIComponent(fechaFinValor)}`;
 
-        // ==============================
-        // CONSULTAR APPS SCRIPT
-        // ==============================
-
-        const respuesta =
-            await fetch(
-                `${URL_SCRIPT}?action=historial`
-                + `&cedi=${encodeURIComponent(cediValor)}`
-                + `&activador=${encodeURIComponent(tecnicoValor)}`
-                + `&fechaInicio=${encodeURIComponent(fechaInicioValor)}`
-                + `&fechaFin=${encodeURIComponent(fechaFinValor)}`
-            );
-
-
+        const respuesta = await fetch(url, { cache: "no-store" });
         if (!respuesta.ok) {
-
-            throw new Error(
-                `Error HTTP ${respuesta.status}`
-            );
-
+            throw new Error(`Error HTTP ${respuesta.status}`);
         }
 
-
-        const data =
-            await respuesta.json();
-
-
-        console.log(
-            "📥 Historial:",
-            data
-        );
-
-
-        // ==============================
-        // ERROR APPS SCRIPT
-        // ==============================
+        const data = await respuesta.json();
 
         if (!data.ok) {
-
-            resultadoHistorial.innerHTML = `
-                <p>${data.mensaje || "No se pudo consultar el historial."}</p>
-            `;
-
+            contenedor.innerHTML =
+                `<p>${data.mensaje || "No se pudo consultar el historial."}</p>`;
             return;
         }
 
-
-        // ==============================
-        // SIN RESULTADOS
-        // ==============================
-
-        if (
-            !data.registros ||
-            data.registros.length === 0
-        ) {
-
-            resultadoHistorial.innerHTML = `
-
-                <div class="total-historial">
-                    Total activaciones: 0
-                </div>
-
+        if (!data.registros || data.registros.length === 0) {
+            contenedor.innerHTML = `
+                <div class="total-historial">Total activaciones: 0</div>
             `;
-
             return;
         }
 
+        const opcionesEstado = [
+            "Express",
+            "Por ticket",
+            "Ticket informativo",
+            "Finalizado"
+        ];
 
-        // ==============================
-        // TABLA
-        // ==============================
+        const filas = data.registros.map(item => {
+            let celdaEstado = "";
 
-        resultadoHistorial.innerHTML = `
+            if (mostrarEstado) {
+                const opciones = opcionesEstado.map(estado => `
+                    <option value="${estado}"
+                        ${item.estado === estado ? "selected" : ""}>
+                        ${estado}
+                    </option>
+                `).join("");
 
+                celdaEstado = `
+                    <td>
+                        <select
+                            class="estado-historial"
+                            data-cedi="${cediValor}"
+                            data-hoja="${item.hoja || ""}"
+                            data-fila="${item.fila || ""}"
+                            data-serie="${item.serie || ""}"
+                            aria-label="Estado de la activación">
+                            <option value="">Seleccionar estado</option>
+                            ${opciones}
+                        </select>
+                    </td>
+                `;
+            }
+
+            return `
+                <tr>
+                    <td>${item.fecha || ""}</td>
+                    <td>${item.modelo || ""}</td>
+                    <td>${item.serie || ""}</td>
+                    ${celdaEstado}
+                </tr>
+            `;
+        }).join("");
+
+        contenedor.innerHTML = `
             <div class="tabla-historial">
-
                 <table>
-
                     <thead>
-
                         <tr>
-
                             <th>FECHA</th>
                             <th>MODELO</th>
                             <th>NÚMERO DE SERIE</th>
-
+                            ${mostrarEstado ? "<th>ESTADO</th>" : ""}
                         </tr>
-
                     </thead>
-
-                    <tbody>
-
-                        ${data.registros.map(item => `
-
-                            <tr>
-
-                                <td>${item.fecha}</td>
-
-                                <td>${item.modelo}</td>
-
-                                <td>${item.serie}</td>
-
-                            </tr>
-
-                        `).join("")}
-
-                    </tbody>
-
+                    <tbody>${filas}</tbody>
                 </table>
-
             </div>
-
-
             <div class="total-historial">
-
-                Total activaciones:
-                ${data.total}
-
+                Total activaciones: ${data.total}
             </div>
-
         `;
 
+        if (mostrarEstado) {
+            contenedor.querySelectorAll(".estado-historial")
+                .forEach(select => {
+                    select.addEventListener("change", guardarEstadoActivacion);
+                });
+        }
 
     } catch (error) {
+        console.error("Error al consultar historial:", error);
+        contenedor.innerHTML =
+            "<p>Error al consultar historial. Revisa la consola para más detalles.</p>";
+    }
+}
 
-        console.error(
-            "Error al consultar historial:",
-            error
-        );
+// ==========================================
+// GUARDAR ESTADO EN LA COLUMNA J
+// ==========================================
 
+async function guardarEstadoActivacion(evento) {
+    const select = evento.target;
+    const estado = select.value;
 
-        resultadoHistorial.innerHTML = `
-            <p>Error al consultar historial.</p>
-        `;
+    if (!estado) return;
 
+    if (!select.dataset.hoja || !select.dataset.fila) {
+        alert("Faltan los datos de la fila. Verifica Code.gs.");
+        return;
     }
 
+    select.disabled = true;
+
+    try {
+        const parametros = new URLSearchParams({
+            action: "actualizarEstado",
+            cedi: select.dataset.cedi,
+            hoja: select.dataset.hoja,
+            fila: select.dataset.fila,
+            serie: select.dataset.serie,
+            estado: estado
+        });
+
+        const respuesta = await fetch(URL_SCRIPT, {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/x-www-form-urlencoded;charset=UTF-8"
+            },
+            body: parametros.toString(),
+            cache: "no-store"
+        });
+
+        const data = await respuesta.json();
+
+        if (!data.ok) {
+            throw new Error(data.mensaje || "No se pudo guardar el estado.");
+        }
+
+        console.log("Estado actualizado:", data.mensaje);
+
+    } catch (error) {
+        console.error("Error al guardar estado:", error);
+        alert("No se pudo guardar el estado. Intenta nuevamente.");
+    } finally {
+        select.disabled = false;
+    }
 }

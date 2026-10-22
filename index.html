@@ -17,7 +17,45 @@
 
 <body>
 
-    <main class="container" id="pantallaFormulario">
+                 <!-- ==========================================
+                        PANTALLA DE ACCESO
+                    ========================================== -->
+
+                    <div id="pantallaAcceso" class="pantalla-acceso">
+
+                        <div class="acceso-contenido">
+
+                            <button
+                                type="button"
+                                id="btnAccesoActivador"
+                                class="btn-acceso"
+                            >
+                                <img
+                                    src="assets/iconos/activador_vento.png"
+                                    alt="Activador"
+                                >
+                                <span>ACTIVADOR</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                id="btnAccesoJefe"
+                                class="btn-acceso"
+                            >
+                                <img
+                                    src="assets/iconos/jefe_activador.png"
+                                    alt="Jefe de Activaciones"
+                                >
+                                <span>JEFE DE ACTIVACIONES</span>
+                            </button>
+
+                        </div>
+
+                    </div>   
+
+            
+
+    <main id="pantallaFormulario" class="container oculto">
 
         <header class="app-header">
 
@@ -194,108 +232,108 @@
     </main>
 
         <!-- INICIO HISTORIAL -->
+        
         <section id="pantallaHistorial" class="pantalla-historial oculto">
 
-            <div class="historial-header">
+        <div class="historial-header">
+            <button
+            type="button"
+            id="btnVolverFormulario"
+            class="btn-volver"
+            >
+            ←
+            </button>
 
-                <button
-                    type="button"
-                    id="btnVolverFormulario"
-                    class="btn-volver">
+            <h2 id="tituloHistorial">Historial de activaciones</h2>
+        </div>
 
-                    ←
+        <div class="card historial">
 
-                </button>
+            <!-- FILTROS PARA ACTIVADORES -->
+            <div id="filtrosHistorialActivador" class="oculto">
 
-                <h2>Historial</h2>
+            <div class="campo">
+                <label for="historialCediActivador">CEDI</label>
+                <select id="historialCediActivador">
+                <option value="">Selecciona un CEDI</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="historialTecnicoActivador">Activador</label>
+                <select id="historialTecnicoActivador">
+                <option value="">Todos los activadores</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="historialFechaInicioActivador">Fecha inicial</label>
+                <input type="date" id="historialFechaInicioActivador">
+            </div>
+
+            <div class="campo">
+                <label for="historialFechaFinActivador">Fecha final</label>
+                <input type="date" id="historialFechaFinActivador">
+            </div>
+
+            <button
+                id="btnBuscarHistorialActivador"
+                class="btn"
+                type="button"
+            >
+                Buscar historial
+            </button>
+
+            <div id="resultadoHistorialActivador"></div>
 
             </div>
 
+            <!-- FILTROS PARA JEFE DE ACTIVACIONES -->
+            <div id="filtrosHistorialJefe" class="oculto">
 
-            <div class="card historial">
+            <div class="campo">
+                <label for="historialTecnico">Activador</label>
+                <input
+                type="text"
+                id="historialTecnico"
+                placeholder="Escribe el nombre del activador"
+                autocomplete="off"
+                >
+            </div>
 
-                <!-- CEDI -->
-                <div class="campo">
+            <div class="campo">
+                <label for="historialFechaInicio">Fecha inicial</label>
+                <input type="date" id="historialFechaInicio">
+            </div>
 
-                    <label for="historialCedi">
-                        CEDI
-                    </label>
+            <div class="campo">
+                <label for="historialFechaFin">Fecha final</label>
+                <input type="date" id="historialFechaFin">
+            </div>
 
-                    <select id="historialCedi"></select>
+            <button
+                id="btnBuscarHistorial"
+                class="btn"
+                type="button"
+            >
+                Buscar historial
+            </button>
 
-                </div>
-
-
-                <!-- ACTIVADOR -->
-                <div class="campo">
-
-                    <label for="historialTecnico">
-                        Activador
-                    </label>
-
-                    <select id="historialTecnico">
-
-                        <option value="">
-                            Todos
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- FECHA INICIAL -->
-                <div class="campo">
-
-                    <label for="historialFechaInicio">
-                        Fecha inicial
-                    </label>
-
-                    <input
-                        type="date"
-                        id="historialFechaInicio">
-
-                </div>
-
-
-                <!-- FECHA FINAL -->
-                <div class="campo">
-
-                    <label for="historialFechaFin">
-                        Fecha final
-                    </label>
-
-                    <input
-                        type="date"
-                        id="historialFechaFin">
-
-                </div>
-
-
-                <!-- BUSCAR -->
-                <button
-                    id="btnBuscarHistorial"
-                    class="btn"
-                    type="button">
-
-                    Buscar historial
-
-                </button>
-
-
-                <!-- RESULTADOS -->
-                <div id="resultadoHistorial"></div>
+            <div id="resultadoHistorial"></div>
 
             </div>
+
+        </div>
 
         </section>
+
         <!-- FIN HISTORIAL de activaciones -->       
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     
 
-    <script src="js/app.js?v=30"></script>
+    <script src="js/app.js?v=32"></script>
     <script src="js/scanner.js?v=20"></script>
     <script src="js/vinValidator.js?v=3"></script>
     
@@ -311,3 +349,4 @@ if ("serviceWorker" in navigator) {
 
 </body>
 </html>
+

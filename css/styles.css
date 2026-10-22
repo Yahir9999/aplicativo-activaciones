@@ -326,7 +326,7 @@ body {
 }
 
 .oculto {
-    display: none;
+    display: none !important;
 }
 
 .confirmacion-serie {
@@ -775,4 +775,76 @@ body {
     padding: 0 16px;
     box-sizing: border-box;
     width: 100%;
+}
+
+/* ==========================================
+   PANTALLA DE ACCESO
+========================================== */
+
+.pantalla-acceso {
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #002060;
+    padding: 40px 20px;
+}
+
+.acceso-contenido {
+    width: 100%;
+    max-width: 700px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 70px;
+}
+
+.btn-acceso {
+    width: 100%;
+
+    border: none;
+    background: transparent;
+
+    color: white;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 18px;
+
+    padding: 0;
+
+    cursor: pointer;
+}
+
+.btn-acceso img {
+    width: clamp(190px, 35vw, 330px);
+    height: clamp(190px, 35vw, 330px);
+
+    object-fit: contain;
+}
+
+.btn-acceso span {
+    display: block;
+
+    color: white;
+
+    text-align: center;
+
+    font-size: clamp(30px, 4vw, 52px);
+    font-weight: 800;
+
+    line-height: 1.15;
+}
+
+.btn-acceso:active {
+    transform: scale(0.98);
 }
