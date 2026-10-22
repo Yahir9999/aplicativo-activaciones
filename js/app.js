@@ -1134,6 +1134,10 @@ const btnVolverFormulario = document.getElementById("btnVolverFormulario");
 const filtrosHistorialActivador = document.getElementById("filtrosHistorialActivador");
 const filtrosHistorialJefe = document.getElementById("filtrosHistorialJefe");
 
+
+const selectorJefe = document.getElementById("selectorJefe");
+
+
 const historialCediActivador = document.getElementById("historialCediActivador");
 const historialTecnicoActivador = document.getElementById("historialTecnicoActivador");
 const historialFechaInicioActivador = document.getElementById("historialFechaInicioActivador");
@@ -1250,6 +1254,47 @@ btnBuscarHistorial.addEventListener(
 );
 
 
+selectorJefe.addEventListener("change", () => {
+    const nombreSeleccionado = selectorJefe.value;
+
+    const jefeSeleccionado = catalogos.usuarios.find(item =>
+        String(item.ACTIVADOR || "").trim() === nombreSeleccionado &&
+        String(item.ROL || "").trim().toUpperCase() ===
+        "JEFE DE ACTIVACIONES"
+    );
+
+    cediJefeActual = jefeSeleccionado
+        ? String(jefeSeleccionado.CEDI || "").trim()
+        : "";
+
+    historialTecnico.value = "";
+    resultadoHistorial.innerHTML = "";
+
+    const listaActivadoresJefe =
+        document.getElementById("listaActivadoresJefe");
+
+    listaActivadoresJefe.innerHTML = "";
+
+    if (!cediJefeActual) return;
+
+    const activadoresJefe = catalogos.usuarios.filter(item =>
+        String(item.CEDI || "").trim().toUpperCase() ===
+            cediJefeActual.toUpperCase() &&
+        String(item.ROL || "").trim().toUpperCase() === "ACTIVADOR"
+    );
+
+    activadoresJefe.forEach(item => {
+        const nombre = String(item.ACTIVADOR || "").trim();
+        if (!nombre) return;
+
+        const opcion = document.createElement("option");
+        opcion.value = nombre;
+        listaActivadoresJefe.appendChild(opcion);
+    });
+});
+
+
+
 
  // ==========================================
  // CARGAR FILTROS DEL ACTIVADOR
@@ -1290,35 +1335,45 @@ function prepararHistorialActivador() {
 // CARGAR FILTROS DEL JEFE
 // ==========================================
 
+
 function prepararHistorialJefe() {
     if (!catalogos.usuarios) return;
 
     filtrosHistorialJefe.classList.remove("oculto");
     filtrosHistorialActivador.classList.add("oculto");
 
-    const jefe = catalogos.usuarios.find(item =>
-        String(item.ROL || "")
-            .trim()
-            .toUpperCase() === "JEFE DE ACTIVACIONES"
+    // Obtener únicamente los usuarios que tienen rol de jefe
+    const jefes = catalogos.usuarios.filter(item =>
+        String(item.ROL || "").trim().toUpperCase() ===
+        "JEFE DE ACTIVACIONES" &&
+        String(item.ACTIVADOR || "").trim() !== "" &&
+        String(item.CEDI || "").trim() !== ""
     );
 
-    if (!jefe || !jefe.CEDI) {
-        resultadoHistorial.innerHTML =
-            "<p>No se encontró el CEDI asignado al jefe de activaciones.</p>";
-        return;
-    }
+    // Preparar selector de jefes
+    selectorJefe.innerHTML =
+        '<option value="">Selecciona tu nombre</option>';
 
-    cediJefeActual = String(jefe.CEDI).trim();
+    jefes.forEach(jefe => {
+        const opcion = document.createElement("option");
+        opcion.value = String(jefe.ACTIVADOR).trim();
+        opcion.textContent =
+            `${String(jefe.ACTIVADOR).trim()} — ${String(jefe.CEDI).trim()}`;
 
+        selectorJefe.appendChild(opcion);
+    });
+
+    // Limpiar filtros y resultados
+    cediJefeActual = "";
     historialTecnico.value = "";
+    resultadoHistorial.innerHTML = "";
 
     establecerFechasHistorial(
         historialFechaInicio,
         historialFechaFin
     );
-
-    resultadoHistorial.innerHTML = "";
 }
+
 
 // ==========================================
 // ESTABLECER FECHAS DEL MES ACTUAL

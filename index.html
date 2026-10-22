@@ -291,15 +291,28 @@
             <!-- FILTROS PARA JEFE DE ACTIVACIONES -->
             <div id="filtrosHistorialJefe" class="oculto">
 
+                
+            <div class="campo">
+                <label for="selectorJefe">Jefe de activaciones</label>
+                <select id="selectorJefe">
+                    <option value="">Selecciona tu nombre</option>
+                </select>
+            </div>
+
+
+            
             <div class="campo">
                 <label for="historialTecnico">Activador</label>
                 <input
-                type="text"
-                id="historialTecnico"
-                placeholder="Escribe el nombre del activador"
-                autocomplete="off"
-                >
+                    type="text"
+                    id="historialTecnico"
+                    list="listaActivadoresJefe"
+                    placeholder="Todos los activadores"
+                    autocomplete="off">
+
+                <datalist id="listaActivadoresJefe"></datalist>
             </div>
+
 
             <div class="campo">
                 <label for="historialFechaInicio">Fecha inicial</label>
