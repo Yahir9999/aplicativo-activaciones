@@ -213,6 +213,33 @@
                 </select>
             </div>
 
+            
+        <!-- INCIDENCIA O DAÑO -->
+        <div class="campo">
+            <label>¿La motocicleta presenta alguna incidencia o daño durante la activación?</label>
+
+            <div class="confirmacion-botones">
+                <button type="button" id="btnIncidenciaSi">SÍ</button>
+                <button type="button" id="btnIncidenciaNo">NO</button>
+            </div>
+
+            <input type="hidden" id="incidenciaPresentada" value="">
+
+            <div id="contenedorIncidencia" class="oculto">
+                <label for="descripcionIncidencia">
+                    Descripción de la incidencia o daño
+                </label>
+
+                <textarea
+                    id="descripcionIncidencia"
+                    rows="4"
+                    placeholder="Describe la incidencia o el daño detectado..."
+                    maxlength="1000"
+                ></textarea>
+            </div>
+        </div>
+
+
         </section>
 
         <!-- MENSAJES -->
@@ -346,7 +373,7 @@
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     
 
-    <script src="js/app.js?v=32"></script>
+    <script src="js/app.js?v=33"></script>
     <script src="js/scanner.js?v=20"></script>
     <script src="js/vinValidator.js?v=3"></script>
     

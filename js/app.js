@@ -39,6 +39,33 @@ const inputSerie = document.getElementById("serie");
 const btnEscribirSerie = document.getElementById("btnEscribirSerie");
 
 
+const btnIncidenciaSi = document.getElementById("btnIncidenciaSi");
+const btnIncidenciaNo = document.getElementById("btnIncidenciaNo");
+const incidenciaPresentada = document.getElementById("incidenciaPresentada");
+const contenedorIncidencia = document.getElementById("contenedorIncidencia");
+const descripcionIncidencia = document.getElementById("descripcionIncidencia");
+
+// Seleccionar SÍ
+btnIncidenciaSi.addEventListener("click", () => {
+    incidenciaPresentada.value = "SI";
+    contenedorIncidencia.classList.remove("oculto");
+    descripcionIncidencia.required = true;
+    btnIncidenciaSi.classList.add("seleccionado");
+    btnIncidenciaNo.classList.remove("seleccionado");
+});
+
+// Seleccionar NO
+btnIncidenciaNo.addEventListener("click", () => {
+    incidenciaPresentada.value = "NO";
+    contenedorIncidencia.classList.add("oculto");
+    descripcionIncidencia.required = false;
+    descripcionIncidencia.value = "";
+    btnIncidenciaNo.classList.add("seleccionado");
+    btnIncidenciaSi.classList.remove("seleccionado");
+});
+
+
+
 
 btnEscribirSerie.addEventListener("click", () => {
 
@@ -575,24 +602,32 @@ function validarFormulario() {
         return;
     }
 
-    const litrosValor = Number(litros.value);
+            const litrosValor = Number(litros.value);
 
-    const valido =
-    cedi.value.trim() !== "" &&
-    activador.value.trim() !== "" &&
-    fecha.value.trim() !== "" &&
-    modelo.value.trim() !== "" &&
-    serie.value.trim() !== "" &&
-    serieConfirmada &&
-    to.value.trim() !== "" &&
-    agencia.value.trim() !== "" &&
-    tipoEstructura.value.trim() !== "" &&
-    litros.value.trim() !== "" &&
-    !isNaN(litrosValor) &&
-    litrosValor >= 0 &&
-    litrosValor <= 9;
+        const valido =
+            cedi.value.trim() !== "" &&
+            activador.value.trim() !== "" &&
+            fecha.value.trim() !== "" &&
+            modelo.value.trim() !== "" &&
+            serie.value.trim() !== "" &&
+            serieConfirmada &&
+            to.value.trim() !== "" &&
+            agencia.value.trim() !== "" &&
+            tipoEstructura.value.trim() !== "" &&
+            litros.value.trim() !== "" &&
+            !isNaN(litrosValor) &&
+            litrosValor >= 0 &&
+            litrosValor <= 9 &&
+            incidenciaPresentada.value !== "" &&
+            (
+                incidenciaPresentada.value === "NO" ||
+                (
+                    incidenciaPresentada.value === "SI" &&
+                    descripcionIncidencia.value.trim() !== ""
+                )
+            );
 
-    btnRegistrar.disabled = !valido;
+        btnRegistrar.disabled = !valido;
 }
 
 function escucharCambios() {
@@ -764,35 +799,26 @@ async function registrarActivacion() {
     // DATOS
     // ==============================
 
-    const datos = {
+    
+        const datos = {
+            modelo: modelo.value.trim(),
+            serie: serie.value
+                .trim()
+                .replace(/\s+/g, "")
+                .toUpperCase(),
+            to: to.value.trim(),
+            litrosGasolina: litros.value.trim(),
+            fechaActivacion: fecha.value,
+            agencia: agencia.value.trim(),
+            cedi: cedi.value.trim(),
+            tipoEstructura: tipoEstructura.value.trim(),
+            activador: activador.value.trim(),
 
-        modelo: modelo.value.trim(),
+            incidenciaFalla: incidenciaPresentada.value === "SI"
+                ? descripcionIncidencia.value.trim()
+                : "NO"
+        };
 
-        serie: serie.value
-            .trim()
-            .replace(/\s+/g, "")
-            .toUpperCase(),
-
-        to: to.value.trim(),
-
-        litrosGasolina:
-            litros.value.trim(),
-
-        fechaActivacion:
-            fecha.value,
-
-        agencia:
-            agencia.value.trim(),
-
-        cedi:
-            cedi.value.trim(),
-
-        tipoEstructura:
-            tipoEstructura.value.trim(),
-
-        activador:
-            activador.value.trim()
-    };
 
 
     // ==============================
@@ -874,7 +900,10 @@ async function registrarActivacion() {
                             datos.tipoEstructura,
 
                         activador:
-                            datos.activador
+                            datos.activador,
+
+                        incidenciaFalla: 
+                            datos.incidenciaFalla
                     });
 
 
