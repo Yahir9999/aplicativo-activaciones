@@ -46,32 +46,70 @@ const contenedorIncidencia = document.getElementById("contenedorIncidencia");
 const descripcionIncidencia = document.getElementById("descripcionIncidencia");
 
 
- // Seleccionar SÍ
+const contenedorReparaciones = document.getElementById("contenedorReparaciones");
+const btnReparacionesSi = document.getElementById("btnReparacionesSi");
+const btnReparacionesNo = document.getElementById("btnReparacionesNo");
+const reparacionesPresentada = document.getElementById("reparacionesPresentada");
+
+
+
+// Seleccionar SÍ en incidencia
 btnIncidenciaSi.addEventListener("click", () => {
     incidenciaPresentada.value = "SI";
+
     contenedorIncidencia.classList.remove("oculto");
+    contenedorReparaciones.classList.remove("oculto");
+
     descripcionIncidencia.required = true;
+
     btnIncidenciaSi.classList.add("seleccionado");
     btnIncidenciaNo.classList.remove("seleccionado");
 
     validarFormulario();
 });
 
-
- // Seleccionar NO
+// Seleccionar NO en incidencia
 btnIncidenciaNo.addEventListener("click", () => {
     incidenciaPresentada.value = "NO";
+
     contenedorIncidencia.classList.add("oculto");
+    contenedorReparaciones.classList.add("oculto");
+
     descripcionIncidencia.required = false;
     descripcionIncidencia.value = "";
+
+    // Limpiar la respuesta de Reparaciones
+    reparacionesPresentada.value = "";
+    btnReparacionesSi.classList.remove("seleccionado");
+    btnReparacionesNo.classList.remove("seleccionado");
+
     btnIncidenciaNo.classList.add("seleccionado");
     btnIncidenciaSi.classList.remove("seleccionado");
 
     validarFormulario();
 });
 
-
 descripcionIncidencia.addEventListener("input", validarFormulario);
+
+// Seleccionar SÍ en Reparaciones
+btnReparacionesSi.addEventListener("click", () => {
+    reparacionesPresentada.value = "SI";
+
+    btnReparacionesSi.classList.add("seleccionado");
+    btnReparacionesNo.classList.remove("seleccionado");
+
+    validarFormulario();
+});
+
+// Seleccionar NO en Reparaciones
+btnReparacionesNo.addEventListener("click", () => {
+    reparacionesPresentada.value = "NO";
+
+    btnReparacionesNo.classList.add("seleccionado");
+    btnReparacionesSi.classList.remove("seleccionado");
+
+    validarFormulario();
+});
 
 
 
@@ -634,7 +672,8 @@ function validarFormulario() {
                 incidenciaPresentada.value === "NO" ||
                 (
                     incidenciaPresentada.value === "SI" &&
-                    descripcionIncidencia.value.trim() !== ""
+                    descripcionIncidencia.value.trim() !== "" &&
+                    reparacionesPresentada.value !== ""
                 )
             );
 

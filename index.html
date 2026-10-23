@@ -236,6 +236,25 @@
                     placeholder="Describe la incidencia o el daño detectado..."
                     maxlength="1000"
                 ></textarea>
+
+                
+                <div id="contenedorReparaciones" class="oculto">
+                    <label>
+                        ¿Se pasó al área de Reparaciones?
+                    </label>
+
+                    <div class="confirmacion-botones">
+                        <button type="button" id="btnReparacionesSi">SÍ</button>
+                        <button type="button" id="btnReparacionesNo">NO</button>
+                    </div>
+
+                    <input
+                        type="hidden"
+                        id="reparacionesPresentada"
+                        value=""
+                    >
+                </div>
+
             </div>
         </div>
 
@@ -373,7 +392,7 @@
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     
 
-    <script src="js/app.js?v=33"></script>
+    <script src="js/app.js?v=34"></script>
     <script src="js/scanner.js?v=20"></script>
     <script src="js/vinValidator.js?v=3"></script>
     
