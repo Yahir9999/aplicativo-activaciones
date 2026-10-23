@@ -45,16 +45,20 @@ const incidenciaPresentada = document.getElementById("incidenciaPresentada");
 const contenedorIncidencia = document.getElementById("contenedorIncidencia");
 const descripcionIncidencia = document.getElementById("descripcionIncidencia");
 
-// Seleccionar SÍ
+
+ // Seleccionar SÍ
 btnIncidenciaSi.addEventListener("click", () => {
     incidenciaPresentada.value = "SI";
     contenedorIncidencia.classList.remove("oculto");
     descripcionIncidencia.required = true;
     btnIncidenciaSi.classList.add("seleccionado");
     btnIncidenciaNo.classList.remove("seleccionado");
+
+    validarFormulario();
 });
 
-// Seleccionar NO
+
+ // Seleccionar NO
 btnIncidenciaNo.addEventListener("click", () => {
     incidenciaPresentada.value = "NO";
     contenedorIncidencia.classList.add("oculto");
@@ -62,7 +66,14 @@ btnIncidenciaNo.addEventListener("click", () => {
     descripcionIncidencia.value = "";
     btnIncidenciaNo.classList.add("seleccionado");
     btnIncidenciaSi.classList.remove("seleccionado");
+
+    validarFormulario();
 });
+
+
+descripcionIncidencia.addEventListener("input", validarFormulario);
+
+
 
 
 
