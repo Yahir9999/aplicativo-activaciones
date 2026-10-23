@@ -848,3 +848,110 @@ body {
 .btn-acceso:active {
     transform: scale(0.98);
 }
+
+
+/* ===== DISEÑO DE INCIDENCIAS EN ACTIVACIONES ===== */
+
+#btnIncidenciaSi,
+#btnIncidenciaNo {
+  flex: 1;
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease,
+              transform 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+/* Pregunta centrada */
+.campo:has(#incidenciaPresentada) > label:first-child {
+  display: block;
+  width: 100%;
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+/* Contenedor de los botones */
+.campo:has(#incidenciaPresentada) .confirmacion-botones {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+/* Botón SÍ */
+#btnIncidenciaSi {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+#btnIncidenciaSi:hover {
+  background-color: #bbf7d0;
+}
+
+/* Botón NO */
+#btnIncidenciaNo {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+#btnIncidenciaNo:hover {
+  background-color: #fecaca;
+}
+
+/* Efecto al seleccionar una opción */
+#btnIncidenciaSi.seleccionado {
+  background-color: #86efac;
+  box-shadow: 0 0 0 2px #16a34a;
+}
+
+#btnIncidenciaNo.seleccionado {
+  background-color: #fca5a5;
+  box-shadow: 0 0 0 2px #dc2626;
+}
+
+#btnIncidenciaSi:active,
+#btnIncidenciaNo:active {
+  transform: scale(0.98);
+}
+
+/* Etiqueta de la descripción */
+#contenedorIncidencia > label {
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Campo para escribir la incidencia */
+#descripcionIncidencia {
+  display: block;
+  width: 100%;
+  min-height: 110px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+#descripcionIncidencia::placeholder {
+  color: #94a3b8;
+}
+
+#descripcionIncidencia:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
