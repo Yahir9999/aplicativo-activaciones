@@ -865,9 +865,14 @@ async function registrarActivacion() {
             activador: activador.value.trim(),
 
             incidenciaFalla: incidenciaPresentada.value === "SI"
-                ? descripcionIncidencia.value.trim()
+            ? descripcionIncidencia.value.trim()
+            : "NO",
+
+        reparacionesPresentada:
+            incidenciaPresentada.value === "SI"
+                ? reparacionesPresentada.value
                 : "NO"
-        };
+};
 
 
 
@@ -952,8 +957,11 @@ async function registrarActivacion() {
                         activador:
                             datos.activador,
 
-                        incidenciaFalla: 
-                            datos.incidenciaFalla
+                        incidenciaFalla:
+                            datos.incidenciaFalla,
+                        
+                         reparacionesPresentada: 
+                            datos.reparacionesPresentada
                     });
 
 
