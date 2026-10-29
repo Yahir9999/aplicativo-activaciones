@@ -1175,6 +1175,22 @@ function limpiarFormulario() {
     serie.readOnly = true;
     confirmacionSerie.classList.add("oculto");
 
+    // Restablecer incidencia
+    incidenciaPresentada.value = "";
+    descripcionIncidencia.value = "";
+    descripcionIncidencia.required = false;
+
+    contenedorIncidencia.classList.add("oculto");
+    btnIncidenciaSi.classList.remove("seleccionado");
+    btnIncidenciaNo.classList.remove("seleccionado");
+
+    // Restablecer reparaciones
+    reparacionesPresentada.value = "";
+    contenedorReparaciones.classList.add("oculto");
+
+    btnReparacionesSi.classList.remove("seleccionado");
+    btnReparacionesNo.classList.remove("seleccionado");
+
     validarFormulario();
 }
 
@@ -1232,9 +1248,14 @@ const historialFechaFinActivador = document.getElementById("historialFechaFinAct
 const btnBuscarHistorialActivador = document.getElementById("btnBuscarHistorialActivador");
 const resultadoHistorialActivador = document.getElementById("resultadoHistorialActivador");
 
+
 const historialTecnico = document.getElementById("historialTecnico");
 const historialFechaInicio = document.getElementById("historialFechaInicio");
 const historialFechaFin = document.getElementById("historialFechaFin");
+
+const historialModeloJefe =  document.getElementById("historialModeloJefe");
+
+const listaModelosHistorialJefe = document.getElementById("listaModelosHistorialJefe");
 const btnBuscarHistorial = document.getElementById("btnBuscarHistorial");
 const resultadoHistorial = document.getElementById("resultadoHistorial");
 
@@ -1459,7 +1480,27 @@ function prepararHistorialJefe() {
         historialFechaInicio,
         historialFechaFin
     );
+
+    // Cargar modelos disponibles para el filtro del jefe
+listaModelosHistorialJefe.innerHTML = "";
+
+const modelosHistorial = [
+    ...new Set(
+        (catalogos.modelos || [])
+            .map(item => String(item.MODELO || "").trim())
+            .filter(Boolean)
+    )
+].sort((a, b) => a.localeCompare(b, "es"));
+
+modelosHistorial.forEach(nombreModelo => {
+    const opcion = document.createElement("option");
+    opcion.value = nombreModelo;
+    listaModelosHistorialJefe.appendChild(opcion);
+});
+
+historialModeloJefe.value = "";
 }
+
 
 
 // ==========================================
@@ -1540,6 +1581,7 @@ async function buscarHistorialActivador() {
 // BUSCAR HISTORIAL DEL JEFE
 // ==========================================
 
+
 async function buscarHistorial() {
     if (!cediJefeActual) {
         resultadoHistorial.innerHTML =
@@ -1553,9 +1595,11 @@ async function buscarHistorial() {
         historialFechaInicio.value,
         historialFechaFin.value,
         resultadoHistorial,
-        true
+        true,
+        historialModeloJefe.value.trim()
     );
 }
+
 
 // ==========================================
 // CONSULTAR Y MOSTRAR HISTORIAL
@@ -1567,7 +1611,8 @@ async function consultarHistorial(
     fechaInicioValor,
     fechaFinValor,
     contenedor,
-    mostrarEstado
+    mostrarEstado,
+    modeloValor = ""
 ) {
     if (!cediValor) {
         contenedor.innerHTML = "<p>Selecciona un CEDI.</p>";
@@ -1594,7 +1639,8 @@ async function consultarHistorial(
             `&cedi=${encodeURIComponent(cediValor)}` +
             `&activador=${encodeURIComponent(tecnicoValor)}` +
             `&fechaInicio=${encodeURIComponent(fechaInicioValor)}` +
-            `&fechaFin=${encodeURIComponent(fechaFinValor)}`;
+            `&fechaFin=${encodeURIComponent(fechaFinValor)}` +
+            `&modelo=${encodeURIComponent(mostrarEstado ? modeloValor : "")}`;
 
         const respuesta = await fetch(url, { cache: "no-store" });
         if (!respuesta.ok) {
