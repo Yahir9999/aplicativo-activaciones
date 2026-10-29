@@ -1664,6 +1664,7 @@ async function consultarHistorial(
 
         const opcionesEstado = [
             "Express",
+            "Mayor",
             "Por ticket",
             "Ticket informativo",
             "Finalizado"
@@ -1760,6 +1761,7 @@ async function guardarEstadoActivacion(evento) {
 
     const estadosReparacion = [
         "Express",
+        "Mayor",
         "Por ticket",
         "Ticket informativo"
     ];
