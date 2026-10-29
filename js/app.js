@@ -1688,6 +1688,7 @@ async function consultarHistorial(
                             data-hoja="${item.hoja || ""}"
                             data-fila="${item.fila || ""}"
                             data-serie="${item.serie || ""}"
+                            data-estado-anterior="${item.estado || ""}"
                             aria-label="Estado de la activación">
                             <option value="">Seleccionar estado</option>
                             ${opciones}
@@ -1743,15 +1744,45 @@ async function consultarHistorial(
 // GUARDAR ESTADO EN LA COLUMNA J
 // ==========================================
 
+
 async function guardarEstadoActivacion(evento) {
     const select = evento.target;
     const estado = select.value;
+    const estadoAnterior = select.dataset.estadoAnterior || "";
 
-    if (!estado) return;
+    if (!estado || estado === estadoAnterior) return;
 
     if (!select.dataset.hoja || !select.dataset.fila) {
         alert("Faltan los datos de la fila. Verifica Code.gs.");
+        select.value = estadoAnterior;
         return;
+    }
+
+    const estadosReparacion = [
+        "Express",
+        "Por ticket",
+        "Ticket informativo"
+    ];
+
+    // Confirmar antes de enviar a Reparaciones.
+    if (estadosReparacion.includes(estado)) {
+        let mensaje;
+
+        if (estadoAnterior === estado) {
+            mensaje =
+                `Esta reparación ya está marcada como ${estado}. ` +
+                "¿Aun así deseas continuar?";
+        } else {
+            mensaje =
+                `¿Deseas enviar esta motocicleta a Reparaciones ` +
+                `con el estado "${estado}"?`;
+        }
+
+        // Si cancela, conservar el estado anterior.
+        if (!confirm(mensaje)) {
+            select.value = estadoAnterior;
+            return;
+        }
     }
 
     select.disabled = true;
@@ -1779,14 +1810,35 @@ async function guardarEstadoActivacion(evento) {
         const data = await respuesta.json();
 
         if (!data.ok) {
-            throw new Error(data.mensaje || "No se pudo guardar el estado.");
+            throw new Error(
+                data.mensaje || "No se pudo guardar el estado."
+            );
         }
+
+        // Solo actualizar el estado anterior después del éxito.
+        select.dataset.estadoAnterior = estado;
 
         console.log("Estado actualizado:", data.mensaje);
 
+        if (data.reparacion && data.reparacion.mensaje) {
+            console.log(
+                "Sincronización con Reparaciones:",
+                data.reparacion.mensaje
+            );
+        }
+
     } catch (error) {
         console.error("Error al guardar estado:", error);
-        alert("No se pudo guardar el estado. Intenta nuevamente.");
+
+        // Evitar que la interfaz muestre un cambio fallido.
+        select.value = estadoAnterior;
+
+        alert(
+            "No se pudo guardar el estado ni completar la operación. " +
+            "Verifica la conexión e intenta nuevamente.\n\n" +
+            error.message
+        );
+
     } finally {
         select.disabled = false;
     }
