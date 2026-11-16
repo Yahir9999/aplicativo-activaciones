@@ -230,10 +230,9 @@ async function cargarCatalogos() {
             const tiempoActual =
                 Date.now();
 
-            cacheValido =
+                cacheValido =
                 cache.data &&
-                cache.timestamp &&
-                (tiempoActual - cache.timestamp) < CACHE_TIME;
+                cache.timestamp;
 
             if (cacheValido) {
 
