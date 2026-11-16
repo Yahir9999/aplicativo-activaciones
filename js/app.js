@@ -787,6 +787,99 @@ function generarRequestId() {
     );
 }
 
+const COLA_KEY = "activaciones_cola_pendientes";
+
+const enEnvio = new Set();
+
+function leerCola() {
+    try { return JSON.parse(localStorage.getItem(COLA_KEY) || "[]"); }
+    catch { return []; }
+}
+function guardarCola(cola) {
+    try { localStorage.setItem(COLA_KEY, JSON.stringify(cola)); }
+    catch (e) { console.warn("No se pudo guardar la cola", e); }
+}
+function encolar(item) {
+    const cola = leerCola();
+    cola.push(item);
+    guardarCola(cola);
+}
+function quitarDeCola(requestId) {
+    guardarCola(leerCola().filter(x => x.requestId !== requestId));
+}
+
+// Un solo intento, con timeout. Devuelve: ok | duplicada | definitivo | reintentar
+async function enviarActivacion(item) {
+
+    // Si este registro ya se está enviando, no lo mandes otra vez
+    if (enEnvio.has(item.requestId)) {
+        return { estado: "reintentar" };
+    }
+
+    enEnvio.add(item.requestId);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const respuesta = await fetch(URL_SCRIPT, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+            body: new URLSearchParams({ action: "registrar", ...item }).toString(),
+            cache: "no-store",
+            signal: controller.signal
+        });
+
+        if (!respuesta.ok) return { estado: "reintentar" };
+
+        const data = await respuesta.json();
+        if (data.ok) return { estado: "ok", data };
+        if (data.duplicada) return { estado: "duplicada", data };
+        if (data.reintentar || data.pendiente) return { estado: "reintentar", data };
+        return { estado: "definitivo", data };
+
+    } catch (e) {
+        return { estado: "reintentar" };
+
+    } finally {
+        clearTimeout(timer);
+        enEnvio.delete(item.requestId);
+    }
+}
+
+let vaciandoCola = false;
+async function vaciarCola() {
+    if (vaciandoCola) return;
+    vaciandoCola = true;
+
+    try {
+        for (const item of leerCola()) {
+
+            const r = await enviarActivacion(item);
+
+            // Se intentará de nuevo en el siguiente ciclo
+            if (r.estado === "reintentar") continue;
+
+            quitarDeCola(item.requestId);
+
+            if (r.estado === "duplicada" || r.estado === "definitivo") {
+                mostrarMensaje(
+                    "error",
+                    `La activación de la serie ${item.serie} no se registró: ` +
+                    ((r.data && r.data.mensaje) || "error desconocido"),
+                    20000
+                );
+            }
+        }
+    } finally {
+        vaciandoCola = false;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", vaciarCola);
+window.addEventListener("online", vaciarCola);
+setInterval(vaciarCola, 30000);
+
 
 // ==============================
 // REGISTRAR ACTIVACIÓN
@@ -794,68 +887,31 @@ function generarRequestId() {
 
 async function registrarActivacion() {
 
-    // Evitar doble registro por doble clic
     if (guardando) return;
-
-
-    // ==============================
-    // VALIDAR LITROS
-    // ==============================
 
     const litrosValor = Number(litros.value);
 
-    if (
-        litrosValor > 9 ||
-        litrosValor < 0 ||
-        isNaN(litrosValor)
-    ) {
-
-        mostrarMensaje(
-            "error",
-            "Los litros de gasolina deben ser de 0 a 9."
-        );
-
+    if (litrosValor > 9 || litrosValor < 0 || isNaN(litrosValor)) {
+        mostrarMensaje("error", "Los litros de gasolina deben ser de 0 a 9.");
         validarFormulario();
         return;
     }
 
-
-    // ==============================
-    // VALIDAR SERIE
-    // ==============================
-
     if (!serieConfirmada) {
-
-        mostrarMensaje(
-            "error",
-            "Confirma la serie antes de registrar la activación."
-        );
-
+        mostrarMensaje("error", "Confirma la serie antes de registrar la activación.");
         return;
     }
 
-
-    // ==============================
-    // BLOQUEAR BOTÓN
-    // ==============================
-
     guardando = true;
-
     btnRegistrar.disabled = true;
     btnRegistrar.textContent = "Guardando...";
 
+    try {
 
-    // ==============================
-    // DATOS
-    // ==============================
-
-    
-        const datos = {
+        const item = {
+            requestId: generarRequestId(),
             modelo: modelo.value.trim(),
-            serie: serie.value
-                .trim()
-                .replace(/\s+/g, "")
-                .toUpperCase(),
+            serie: serie.value.trim().replace(/\s+/g, "").toUpperCase(),
             to: to.value.trim(),
             litrosGasolina: litros.value.trim(),
             fechaActivacion: fecha.value,
@@ -863,299 +919,59 @@ async function registrarActivacion() {
             cedi: cedi.value.trim(),
             tipoEstructura: tipoEstructura.value.trim(),
             activador: activador.value.trim(),
-
             incidenciaFalla: incidenciaPresentada.value === "SI"
-            ? descripcionIncidencia.value.trim()
-            : "NO",
-
-        reparacionesPresentada:
-            incidenciaPresentada.value === "SI"
+                ? descripcionIncidencia.value.trim()
+                : "NO",
+            reparacionesPresentada: incidenciaPresentada.value === "SI"
                 ? reparacionesPresentada.value
                 : "NO"
-};
+        };
 
+        // 1. Primero se guarda en el teléfono
+        encolar(item);
 
+        // 2. Luego se intenta enviar
+        const r = await enviarActivacion(item);
 
-    // ==============================
-    // REQUEST ID
-    // ==============================
+        if (r.estado === "ok") {
 
-    /*
-     * IMPORTANTE:
-     *
-     * El mismo requestId se conserva
-     * durante todos los reintentos.
-     *
-     * Así Apps Script sabe que se trata
-     * de la misma activación.
-     */
+            quitarDeCola(item.requestId);
+            mostrarMensaje(
+                "exito",
+                r.data.repetido
+                    ? "La activación ya había sido registrada correctamente."
+                    : "Activación guardada correctamente.",
+                5000
+            );
+            limpiarFormulario();
 
-    const requestId =
-        generarRequestId();
+        } else if (r.estado === "duplicada" || r.estado === "definitivo") {
 
-
-    // ==============================
-    // INTENTOS
-    // ==============================
-
-    const MAX_INTENTOS = 3;
-
-    let ultimoError = null;
-
-
-    try {
-
-        for (
-            let intento = 1;
-            intento <= MAX_INTENTOS;
-            intento++
-        ) {
-
-            console.log(
-                `📤 Registro de activación - intento ${intento}/${MAX_INTENTOS}`,
-                {
-                    requestId,
-                    serie: datos.serie
-                }
+            quitarDeCola(item.requestId);
+            mostrarMensaje(
+                "error",
+                r.data.mensaje || "No se pudo registrar la activación.",
+                15000
             );
 
+        } else {
 
-            try {
-
-                // ==============================
-                // CREAR FORMULARIO POST
-                // ==============================
-
-                const parametros =
-                    new URLSearchParams({
-
-                        action: "registrar",
-
-                        requestId: requestId,
-
-                        modelo: datos.modelo,
-
-                        serie: datos.serie,
-
-                        to: datos.to,
-
-                        litrosGasolina:
-                            datos.litrosGasolina,
-
-                        fechaActivacion:
-                            datos.fechaActivacion,
-
-                        agencia:
-                            datos.agencia,
-
-                        cedi:
-                            datos.cedi,
-
-                        tipoEstructura:
-                            datos.tipoEstructura,
-
-                        activador:
-                            datos.activador,
-
-                        incidenciaFalla:
-                            datos.incidenciaFalla,
-                        
-                         reparacionesPresentada: 
-                            datos.reparacionesPresentada
-                    });
-
-
-                // ==============================
-                // ENVIAR
-                // ==============================
-
-                const respuesta =
-                    await fetch(
-                        URL_SCRIPT,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/x-www-form-urlencoded;charset=UTF-8"
-                            },
-
-                            body:
-                                parametros.toString(),
-
-                            cache: "no-store"
-                        }
-                    );
-
-
-                if (!respuesta.ok) {
-
-                    throw new Error(
-                        `Error HTTP ${respuesta.status}`
-                    );
-                }
-
-
-                // ==============================
-                // LEER RESPUESTA
-                // ==============================
-
-                const data =
-                    await respuesta.json();
-
-
-                console.log(
-                    "📥 Respuesta Apps Script:",
-                    data
-                );
-
-
-                // ==============================
-                // REGISTRO CORRECTO
-                // ==============================
-
-                if (data.ok) {
-
-                    mostrarMensaje(
-                        "exito",
-                        data.repetido
-                            ? "La activación ya había sido registrada correctamente."
-                            : "Activación guardada correctamente."
-                    );
-
-                    limpiarFormulario();
-
-                    return;
-                }
-
-
-                // ==============================
-                // SERIE DUPLICADA
-                // ==============================
-
-                if (data.duplicada) {
-
-                    mostrarMensaje(
-                        "error",
-                        data.mensaje ||
-                        "La serie ya estaba registrada."
-                    );
-
-                    return;
-                }
-
-
-                // ==============================
-                // REINTENTAR
-                // ==============================
-
-                if (
-                    data.reintentar ||
-                    data.pendiente
-                ) {
-
-                    console.warn(
-                        "⏳ Activación pendiente. Se reintentará."
-                    );
-
-                    ultimoError =
-                        new Error(
-                            data.mensaje ||
-                            "Activación pendiente."
-                        );
-
-                    if (
-                        intento <
-                        MAX_INTENTOS
-                    ) {
-
-                        await esperar(
-                            intento * 1000
-                        );
-
-                        continue;
-                    }
-
-                    break;
-                }
-
-
-                // ==============================
-                // ERROR DEFINITIVO
-                // ==============================
-
-                mostrarMensaje(
-                    "error",
-                    data.mensaje ||
-                    "No se pudo registrar la activación."
-                );
-
-                return;
-
-            } catch (error) {
-
-                ultimoError = error;
-
-                console.error(
-                    `❌ Error en intento ${intento}:`,
-                    error
-                );
-
-
-                // ==============================
-                // SI AÚN HAY INTENTOS
-                // ==============================
-
-                if (
-                    intento <
-                    MAX_INTENTOS
-                ) {
-
-                    mostrarMensaje(
-                        "error",
-                        `Reintentando guardar... (${intento}/${MAX_INTENTOS})`
-                    );
-
-                    await esperar(
-                        intento * 1000
-                    );
-
-                    continue;
-                }
-            }
+            // Se queda en la cola y se reenvía sola
+            mostrarMensaje(
+                "error",
+                "Sin conexión o servidor ocupado. La activación quedó guardada en este teléfono y se enviará automáticamente.",
+                15000
+            );
+            limpiarFormulario();
         }
-
-
-        // ==============================
-        // SE AGOTARON LOS INTENTOS
-        // ==============================
-
-        console.error(
-            "❌ No se pudo completar el registro:",
-            ultimoError
-        );
-
-
-        mostrarMensaje(
-            "error",
-            "No se pudo confirmar el registro. Intenta nuevamente sin cambiar los datos."
-        );
-
 
     } finally {
 
-        // ==============================
-        // LIBERAR BOTÓN
-        // ==============================
-
         guardando = false;
-
-        btnRegistrar.textContent =
-            "Registrar activación";
-
+        btnRegistrar.textContent = "Registrar activación";
         validarFormulario();
     }
-} 
+}
 
 
 // ==============================
@@ -1199,14 +1015,16 @@ function limpiarFormulario() {
 // MENSAJES
 // ==============================
 
-function mostrarMensaje(tipo, texto) {
+let timerMensaje;
+
+function mostrarMensaje(tipo, texto, duracion = 3500) {
+    clearTimeout(timerMensaje);
     mensaje.className = `mensaje ${tipo}`;
     mensaje.textContent = texto;
-
-    setTimeout(() => {
+    timerMensaje = setTimeout(() => {
         mensaje.className = "mensaje";
         mensaje.textContent = "";
-    }, 3500);
+    }, duracion);
 }
 
 
