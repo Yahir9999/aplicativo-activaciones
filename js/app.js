@@ -44,6 +44,14 @@ const btnIncidenciaNo = document.getElementById("btnIncidenciaNo");
 const incidenciaPresentada = document.getElementById("incidenciaPresentada");
 const contenedorIncidencia = document.getElementById("contenedorIncidencia");
 const descripcionIncidencia = document.getElementById("descripcionIncidencia");
+const listaIncidencias = document.getElementById("listaIncidencias");
+
+const incidenciasSeleccionadas = document.getElementById(
+    "incidenciasSeleccionadas"
+);
+
+// Almacena las incidencias elegidas
+let incidenciasElegidas = [];
 
 
 const contenedorReparaciones = document.getElementById("contenedorReparaciones");
@@ -53,8 +61,14 @@ const reparacionesPresentada = document.getElementById("reparacionesPresentada")
 
 
 
+
+// ==========================================
+// INCIDENCIAS MÚLTIPLES
+// ==========================================
+
 // Seleccionar SÍ en incidencia
 btnIncidenciaSi.addEventListener("click", () => {
+
     incidenciaPresentada.value = "SI";
 
     contenedorIncidencia.classList.remove("oculto");
@@ -65,11 +79,15 @@ btnIncidenciaSi.addEventListener("click", () => {
     btnIncidenciaSi.classList.add("seleccionado");
     btnIncidenciaNo.classList.remove("seleccionado");
 
+    descripcionIncidencia.focus();
+
     validarFormulario();
 });
 
+
 // Seleccionar NO en incidencia
 btnIncidenciaNo.addEventListener("click", () => {
+
     incidenciaPresentada.value = "NO";
 
     contenedorIncidencia.classList.add("oculto");
@@ -78,8 +96,11 @@ btnIncidenciaNo.addEventListener("click", () => {
     descripcionIncidencia.required = false;
     descripcionIncidencia.value = "";
 
-    // Limpiar la respuesta de Reparaciones
+    incidenciasElegidas = [];
+    renderizarIncidencias();
+
     reparacionesPresentada.value = "";
+
     btnReparacionesSi.classList.remove("seleccionado");
     btnReparacionesNo.classList.remove("seleccionado");
 
@@ -89,26 +110,233 @@ btnIncidenciaNo.addEventListener("click", () => {
     validarFormulario();
 });
 
-descripcionIncidencia.addEventListener("input", validarFormulario);
 
-// Seleccionar SÍ en Reparaciones
+// ==========================================
+// BUSCADOR DE INCIDENCIAS
+// ==========================================
+
+function obtenerCatalogoIncidencias() {
+
+    return (catalogos.incidencias || [])
+        .map(item => String(item).trim())
+        .filter(Boolean);
+
+}
+
+
+function normalizarIncidencia(texto) {
+
+    return String(texto || "")
+        .trim()
+        .toLocaleLowerCase("es");
+
+}
+
+
+// Mostrar sugerencias
+descripcionIncidencia.addEventListener("input", () => {
+
+    const texto = descripcionIncidencia.value.trim();
+
+    listaIncidencias.innerHTML = "";
+
+    if (!texto) {
+        listaIncidencias.classList.add("oculto");
+        return;
+    }
+
+    const seleccionadas = incidenciasElegidas.map(
+        normalizarIncidencia
+    );
+
+    const coincidencias = obtenerCatalogoIncidencias()
+        .filter(nombre =>
+            nombre.toLocaleLowerCase("es").includes(
+                texto.toLocaleLowerCase("es")
+            )
+        )
+        .filter(nombre =>
+            !seleccionadas.includes(normalizarIncidencia(nombre))
+        )
+        .slice(0, 10);
+
+    coincidencias.forEach(nombre => {
+
+        const opcion = document.createElement("div");
+
+        opcion.className = "opcion-buscador";
+        opcion.textContent = nombre;
+
+        opcion.addEventListener("click", () => {
+            agregarIncidencia(nombre);
+        });
+
+        listaIncidencias.appendChild(opcion);
+
+    });
+
+    listaIncidencias.classList.remove("oculto");
+
+    validarFormulario();
+
+});
+
+
+// ==========================================
+// AGREGAR INCIDENCIA
+// ==========================================
+
+function agregarIncidencia(texto) {
+
+    const nombre = String(texto || "").trim();
+
+    if (!nombre) return;
+
+    const yaExiste = incidenciasElegidas.some(
+        item =>
+            normalizarIncidencia(item) ===
+            normalizarIncidencia(nombre)
+    );
+
+    if (yaExiste) {
+        descripcionIncidencia.value = "";
+        listaIncidencias.classList.add("oculto");
+        validarFormulario();
+        return;
+    }
+
+    incidenciasElegidas.push(nombre);
+
+    descripcionIncidencia.value = "";
+
+    listaIncidencias.innerHTML = "";
+    listaIncidencias.classList.add("oculto");
+
+    renderizarIncidencias();
+
+    descripcionIncidencia.focus();
+
+    validarFormulario();
+
+}
+
+
+// ==========================================
+// MOSTRAR INCIDENCIAS SELECCIONADAS
+// ==========================================
+
+function renderizarIncidencias() {
+
+    incidenciasSeleccionadas.innerHTML = "";
+
+    incidenciasElegidas.forEach((nombre, indice) => {
+
+        const etiqueta = document.createElement("div");
+
+        etiqueta.className = "incidencia-tag";
+
+        const texto = document.createElement("span");
+        texto.textContent = nombre;
+
+        const eliminar = document.createElement("button");
+
+        eliminar.type = "button";
+        eliminar.textContent = "×";
+        eliminar.setAttribute(
+            "aria-label",
+            "Eliminar incidencia " + nombre
+        );
+
+        eliminar.addEventListener("click", () => {
+
+            incidenciasElegidas.splice(indice, 1);
+
+            renderizarIncidencias();
+
+            validarFormulario();
+
+        });
+
+        etiqueta.appendChild(texto);
+        etiqueta.appendChild(eliminar);
+
+        incidenciasSeleccionadas.appendChild(etiqueta);
+
+    });
+
+}
+
+
+// ==========================================
+// ENTER Y COMA PARA AGREGAR
+// ==========================================
+
+descripcionIncidencia.addEventListener("keydown", evento => {
+
+    if (
+        evento.key === "Enter" ||
+        evento.key === ","
+    ) {
+
+        evento.preventDefault();
+
+        const texto = descripcionIncidencia.value
+            .replace(/,/g, "")
+            .trim();
+
+        if (texto) {
+            agregarIncidencia(texto);
+        }
+
+    }
+
+});
+
+
+// Cerrar sugerencias al hacer clic fuera
+document.addEventListener("click", evento => {
+
+    if (
+        !descripcionIncidencia.contains(evento.target) &&
+        !listaIncidencias.contains(evento.target)
+    ) {
+
+        listaIncidencias.classList.add("oculto");
+
+    }
+
+});
+
+
+// ==========================================
+// SELECCIONAR SÍ EN REPARACIONES
+// ==========================================
+
 btnReparacionesSi.addEventListener("click", () => {
+
     reparacionesPresentada.value = "SI";
 
     btnReparacionesSi.classList.add("seleccionado");
     btnReparacionesNo.classList.remove("seleccionado");
 
     validarFormulario();
+
 });
 
-// Seleccionar NO en Reparaciones
+
+// ==========================================
+// SELECCIONAR NO EN REPARACIONES
+// ==========================================
+
 btnReparacionesNo.addEventListener("click", () => {
+
     reparacionesPresentada.value = "NO";
 
     btnReparacionesNo.classList.add("seleccionado");
     btnReparacionesSi.classList.remove("seleccionado");
 
     validarFormulario();
+
 });
 
 
@@ -671,7 +899,8 @@ function validarFormulario() {
                 incidenciaPresentada.value === "NO" ||
                 (
                     incidenciaPresentada.value === "SI" &&
-                    descripcionIncidencia.value.trim() !== "" &&
+                    incidenciasElegidas.length > 0 &&
+                    descripcionIncidencia.value.trim() === "" &&
                     reparacionesPresentada.value !== ""
                 )
             );
@@ -919,8 +1148,8 @@ async function registrarActivacion() {
             tipoEstructura: tipoEstructura.value.trim(),
             activador: activador.value.trim(),
             incidenciaFalla: incidenciaPresentada.value === "SI"
-                ? descripcionIncidencia.value.trim()
-                : "NO",
+            ? incidenciasElegidas.join("\n")
+            : "NO",
             reparacionesPresentada: incidenciaPresentada.value === "SI"
                 ? reparacionesPresentada.value
                 : "NO"
@@ -993,6 +1222,11 @@ function limpiarFormulario() {
     // Restablecer incidencia
     incidenciaPresentada.value = "";
     descripcionIncidencia.value = "";
+    incidenciasElegidas = [];
+    renderizarIncidencias();
+
+    listaIncidencias.innerHTML = "";
+    listaIncidencias.classList.add("oculto");
     descripcionIncidencia.required = false;
 
     contenedorIncidencia.classList.add("oculto");
